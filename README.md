@@ -1,5 +1,6 @@
 EduRater - a School Review Forum
-/nA forum where parents and teachers can post and view information and reviews on schools across England
+
+A forum where parents and teachers can post and view information and reviews on schools across England
 
 
 
