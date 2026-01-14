@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseClient } from "@/lib/supabase/client";
 
 const getRedirectUrl = () =>
-  `${window.location.origin.replace(/\\/$/, "")}/auth/callback`;
+  `${window.location.origin.replace(/\/$/, "")}/auth/callback`;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,8 +21,9 @@ export default function LoginPage() {
     event.preventDefault();
     setStatus({ type: "loading", message: "Signing in..." });
 
+    const normalizedEmail = email.trim();
     const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
 
@@ -37,8 +38,9 @@ export default function LoginPage() {
   const handleEmailSignUp = async () => {
     setStatus({ type: "loading", message: "Creating account..." });
 
+    const normalizedEmail = email.trim();
     const { error } = await supabaseClient.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: getRedirectUrl(),
@@ -75,7 +77,7 @@ export default function LoginPage() {
           <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
             EduRater
           </p>
-          <h1 className="text-3xl font-semibold">Sign in or create an account</h1>
+          <h1 className="text-3xl font-semibold">Sign in or create an account to make reviews!</h1>
           <p className="text-sm text-slate-600">
             Use Google or email/password. Email signups require verification.
           </p>
