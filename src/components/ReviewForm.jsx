@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { supabaseClient } from "@/lib/supabase/client";
 
 export default function ReviewForm({ schoolUrn, onPosted }) {
     const [title, setTitle] = useState("");
@@ -106,6 +106,24 @@ export default function ReviewForm({ schoolUrn, onPosted }) {
                         required
                     />
                 </div>
+
+                <button
+                    type="submit"
+                    disabled={status.type === "loading"}
+                    className="rounded-md bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                    Post
+                </button>
+
+                {status.type !== "idle" && (
+                    <p
+                        className={`text-sm ${
+                            status.type === "error" ? "text-red-600" : "text-gray-600 dark:text-gray-300"
+                        }`}
+                    >
+                        {status.message}
+                    </p>
+                )}
             </form>
         </div>
     );

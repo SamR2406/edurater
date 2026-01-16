@@ -4,14 +4,14 @@ export default function SchoolPage({ school }) {
 
     /* builds address lines and skips any null values */
     /* creates array of possible address data points */
-    const addressLines = [school.Street, school["LA (name)"], school.Town, school.Postcode]
+    const addressLines = [school.Street, school.Locality, school.Address3, school.Town, school["County (name)"], school.Postcode]
         .map((v) => (typeof v === "string" ? v.trim() : v))
         .filter(Boolean);   /* removes empty values */
 
     return (
-        <div className="bg-white dark:bg-gray-900">
+        <div className="bg-brand-2 dark:bg-brand-6">
             {/* school name large heading */}
-            <h4 className="p-4 text-2xl font-semibold text-black dark:text-white">
+            <h4 className="mt-16 p-4 text-2xl font-semibold text-black dark:text-white">
                 {school.EstablishmentName}
             </h4>
 

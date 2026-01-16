@@ -22,7 +22,7 @@ export async function GET(request) {
   let query = supabaseServer
     .from("School data")
     .select(
-      'URN, Postcode, EstablishmentName, Town, "LA (name)", Street, SchoolWebsite, TelephoneNum, "Gender (name)", "PhaseOfEducation (name)", SchoolCapacity, NumberOfPupils, "SpecialClasses (name)"'
+      'URN, Postcode, EstablishmentName, Locality, Address3, "County (name)", Town, "LA (name)", Street, SchoolWebsite, TelephoneNum, "Gender (name)", "PhaseOfEducation (name)", SchoolCapacity, NumberOfPupils, "SpecialClasses (name)"'
     )
     .limit(limit);
   
