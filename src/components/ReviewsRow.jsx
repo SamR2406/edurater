@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabaseClient } from "@/lib/supabase/client";
-import ReviewCard from "@/components/ReviewsCard";
+import ReviewCard from "@/components/ReviewCard";
 
 export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     const [reviews, setReviews] = useState([]);

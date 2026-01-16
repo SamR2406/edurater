@@ -91,6 +91,8 @@ export default function SchoolDetailPage() {
         <div className="min-h-screen p-6 bg-brand-2 dark:bg-brand-6">
             <SchoolPage school={school} />
 
+            <ReviewsRow schoolUrn={urn} refreshKey={refreshKey} />
+
             {/* only show review form if user is logged in */}
             {user ? (
                 <ReviewForm schoolUrn={urn} />
