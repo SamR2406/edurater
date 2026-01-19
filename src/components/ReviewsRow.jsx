@@ -5,6 +5,8 @@ import ReviewCard from "@/components/ReviewCard";
 import ReviewForm from "@/components/ReviewForm";
 import { supabaseClient } from "@/lib/supabase/client";
 
+/* schoolUrn: URN of the school to load reviews for
+    refreshKey: when this changes, reviews are reloaded */
 export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     const [reviews, setReviews] = useState([]);
     const [schoolScore, setSchoolScore] = useState(null);
@@ -37,7 +39,7 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
 
     useEffect(() => {
         const load = async () => {
-            if (!schoolUrn) return;
+            if (!schoolUrn) return; /* no school URN, do nothing */
 
             setLoading(true);
             setError("");
@@ -91,6 +93,7 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
 
     return (
         <section className="mt-8">
+            {/* creates a row with title on left, total count of reviews on the right */}
             <div className="mb-3 flex items-end justify-between">
                 <h2 className="text-lg font-semibold text-black dark:text-white">
                     Reviews
@@ -121,16 +124,22 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
             ) : null}
 
             {loading && <p className="text-sm text-gray-600 dark:text-gray-300">Loading reviews...</p>}
-            {error && <p className="text-sm text-red-600">{error}</p>}
 
+            {/* if error is a non-empty string then show it */}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            
+            {/* if there are no reviews then show no reviews text */}
             {!loading && !error && reviews.length === 0 && (
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                     No reviews yet. Be the first to leave a review!
                 </p>
             )}
 
+            {/* place cards in a horizontal row and if cards do not fit have horizontal scroll */}
             {!loading && !error && reviews.length > 0 && (
                 <div className="flex gap-4 overflow-x-auto pb-3 pr-2">
+
+                    {/* loops through the reviews array rendering a ReviewCard for each object */}
                     {reviews.map((review) => (
                         <ReviewCard
                             key={review.id}
