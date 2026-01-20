@@ -9,11 +9,11 @@ export default function SchoolPage({ school }) {
         .filter(Boolean);   /* removes empty values */
 
     return (
-        <div className="bg-brand-custard dark:bg-brand-darkgreen pt-30 px-10">
+        <div className="display-headings bg-brand-custard dark:bg-brand-darkgreen pt-30 px-10">
             {/* school name large heading */}
-            <h4 className="text-2xl font-semibold text-brand-azure dark:text-white mb-4">
+            <h3 className="text-2xl font-semibold text-brand-azure dark:text-white mb-4">
                 {school.EstablishmentName}
-            </h4>
+            </h3>
 
             {/* line underneath heading */}
             <hr className="border-brand-azure dark:border-brand-lightgrey mb-6" />
@@ -31,7 +31,7 @@ export default function SchoolPage({ school }) {
 
             {/* contact section with local council so far */}
             <div className="p-4">
-                <h2 className="font-semibold border-b text-lg text-brand-red dark:text-brand-custard border-gray-300 dark:border-brand-lightgrey inline-block mb-3">Contact the school</h2>
+                <h3 className="font-semibold border-b text-lg text-brand-red dark:text-brand-custard border-gray-300 dark:border-brand-lightgrey inline-block mb-3">Contact the school</h3>
                 <p className=" text-brand-azure dark:text-brand-custard"><b>Local council:</b> {school["LA (name)"]}</p>
             </div>
         </div>

@@ -1,10 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import "leaflet/dist/leaflet.css"
-import { Faculty_Glyphic } from "next/font/google";
 
-const macondoSwash = Faculty_Glyphic({
+const dmSerifDisplay = DM_Serif_Display ({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-heading",
@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
   return (
     <html 
         lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} ${macondoSwash.variable}`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dmSerifDisplay.variable}`}
       >
         <body className="antialiased">
         <NavBar />

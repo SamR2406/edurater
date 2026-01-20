@@ -71,10 +71,10 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-brand-azure dark:bg-brand-darkgreen text-brand-white dark:text-brand-custard">
+    <main className="display-headings min-h-screen bg-brand-azure dark:bg-brand-darkgreen text-brand-white dark:text-brand-custard">
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-2 py-45">
         <div>
-          <h2 className="font-extrabold leading-tight text-white dark:text-white sm:text-6xl">
+          <h2 className="font-extrabold text-white dark:text-white">
           Welcome to <br />
           <span className="text-brand-custard">EduRater</span>
         </h2>
