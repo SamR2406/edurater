@@ -55,9 +55,12 @@ export default function NavBar() {
             className="rounded-full"
             priority
           />
-          <span className="text-xl font-semibold text-heading text-brand-azure hover:text-brand-red dark:text-white dark:hover:text-brand-custard">
+
+          {/* delete once confirmed not needed */}
+          {/* <span className="text-xl font-semibold text-heading text-brand-azure hover:text-brand-red dark:text-white dark:hover:text-brand-custard">
             Edurater
-          </span>
+          </span> */}
+
         </Link>
 
         {/* RIGHT SIDE (mobile only): Hamburger button */}
@@ -116,9 +119,12 @@ export default function NavBar() {
                 onClick={toggleTheme}
                 className="block py-2 px-3 font-bold text-brand-azure hover:text-brand-red dark:text-white dark:hover:text-brand-custard"
               >
-                Toggle theme
+                Night Mode
               </button>
             </li>
+
+
+            
             {canSeeStaff ? (
               <li>
                 <Link href="/staff" className="block py-2 px-3 font-bold text-brand-azure hover:text-brand-red dark:text-white dark:hover:text-brand-custard">

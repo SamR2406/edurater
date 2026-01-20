@@ -20,12 +20,13 @@ export default function Home() {
 
   return (
     <div className="display-headings flex min-h-screen items-center justify-center bg-brand-azure font-sans dark:bg-brand-darkblue">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-56 px-16 bg-brand-red dark:bg-brand-darkgreen sm:items-start">
-        <h1 className="font-extrabold leading-tight text-white dark:text-white">
+      <main className="display-headings flex min-h-screen w-full max-w-3xl flex-col items-center gap-14 py-56 px-16 bg-brand-red dark:bg-brand-darkgreen sm:items-start">
+        <h1 className="font-extrabold text-white dark:text-white">
           Welcome to <br />
           <span className="text-brand-custard">EduRater</span>
         </h1>
         
+        <div className="w-full flex flex-col gap-3">
         <input
           type="text"
           value={q}
@@ -36,11 +37,12 @@ export default function Home() {
 
         <button
           type="button"
-          onClick={onSearch}    /* call onSearch when button is clicked */
-          className="mt-4 rounded-md px-6 py-3 bg-brand-custard dark:bg-brand-darkblue  text-brand-azure dark:text-brand-custard font-bold hover:bg-brand-minty dark:hover:bg-brand-custard hover:text-white dark:hover:text-brand-darkblue focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          onClick={onSearch}    
+          className="self-center rounded-md px-6 py-3 bg-brand-custard dark:bg-brand-darkblue  text-brand-azure dark:text-brand-custard font-bold hover:bg-brand-minty dark:hover:bg-brand-custard hover:text-white dark:hover:text-brand-darkblue focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Search
         </button>
+        </div>
       </main>
     </div>
   );
