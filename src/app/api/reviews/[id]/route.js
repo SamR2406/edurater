@@ -7,7 +7,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const reviewId = params?.id;
+  const { id: reviewId } = await params;
   if (!reviewId) {
     return NextResponse.json({ error: "Missing review id." }, { status: 400 });
   }
@@ -78,12 +78,26 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const reviewId = params?.id;
+  const { id: reviewId } = await params;
   if (!reviewId) {
     return NextResponse.json({ error: "Missing review id." }, { status: 400 });
   }
 
   const supabaseUser = createUserClient(token);
+
+  const { data: review, error: fetchError } = await supabaseUser
+    .from("reviews")
+    .select("*")
+    .eq("id", reviewId)
+    .single();
+
+  if (fetchError) {
+    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+  }
+
+  if (!review) {
+    return NextResponse.json({ error: "Review not found." }, { status: 404 });
+  }
 
   const { error: deleteError } = await supabaseUser
     .from("reviews")
