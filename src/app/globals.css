@@ -58,6 +58,16 @@ body {
   font-family: var(--font-geist-sans);
 }
 
+/* Ensure the navbar sits above Leaflet */
+nav {
+  z-index: 9999;
+}
+
+/* Make Leaflet stay below */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
 code,
 pre {
   font-family: var(--font-geist-mono);
