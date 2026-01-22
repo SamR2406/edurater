@@ -41,7 +41,7 @@ export default function NavBar() {
 
   return (
     // NAV WRAPPER (fixed bar at the top)
-    <nav className="bg-brand-cream dark:bg-brand-brown fixed w-full z-20 top-0 border-b border-default border-brand-blue dark:border-brand-blue">
+    <nav className="bg-brand-cream dark:bg-brand-brown fixed w-full z-50 top-0 border-b border-default border-brand-blue dark:border-brand-blue">
       <div className="max-w-7xl mx-auto p-4 flex items-center justify-between">
 
         {/* LEFT SIDE: Logo / Brand */}
