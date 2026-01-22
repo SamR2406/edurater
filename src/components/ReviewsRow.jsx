@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ReviewCard from "@/components/ReviewCard";
 import ReviewForm from "@/components/ReviewForm";
+import ReportForm from "@/components/ReportForm";
 import { supabaseClient } from "@/lib/supabase/client";
 
 /* schoolUrn: URN of the school to load reviews for
@@ -16,6 +17,7 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [accessToken, setAccessToken] = useState("");
     const [editingReview, setEditingReview] = useState(null);
+    const [reportingReview, setReportingReview] = useState(null);
     const [localRefresh, setLocalRefresh] = useState(0);
 
     useEffect(() => {
@@ -155,6 +157,7 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
                             showControls={review.user_id === currentUserId}
                             onEdit={() => setEditingReview(review)}
                             onDelete={() => handleDelete(review.id)}
+                            onReport={() => setReportingReview(review)}
                         />
                     ))}
                 </div>
