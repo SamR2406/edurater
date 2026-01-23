@@ -5,6 +5,7 @@ import { useState } from "react";
 
 /* lets component navigate to different pages without a page reload */
 import { useRouter } from "next/navigation";
+import IconsScroll from "@/components/IconsScroll";
 
 export default function Home() {
   const [q, setQ] = useState("");
@@ -18,15 +19,33 @@ export default function Home() {
     router.push(`/schools?q=${encodeURIComponent(term)}`)
   }
 
+  const icons = [
+    "/icons/Book.png",
+    "/icons/Flask.png",
+    "/icons/Division.png",
+    "/icons/Paintbrush.png",
+    "/icons/Pi.png",
+    "/icons/Plus.png",
+    "/icons/Atom.png",
+    "/icons/Sodium.png"
+  ];
+
   return (
-    <div className="display-headings flex min-h-screen items-center justify-center bg-brand-cream font-sans dark:bg-brand-brown">
-      <main className="display-headings flex min-h-screen w-full max-w-3xl flex-col items-center gap-14 py-62 px-16 bg-brand-cream dark:bg-brand-brown sm:items-start">
-        <h1 className="font-extrabold text-brand-blue dark:text-white">
-          Welcome to <br />
-          <span className="text-brand-brown dark:text-brand-orange ">EduRater</span>
-        </h1>
-        
-        <div className="w-full flex flex-col gap-3">
+    <main className="min-h-screen flex flex-col">
+      <header className="relative display-headings w-full min-h-[44vh] flex items-center justify-center bg-brand-blue">
+        <IconsScroll icons={icons} size={44} rows={7} speed={300}/>
+
+        <div className="relative z-10 px-6 text-center">
+          <h1 className="font-extrabold text-brand-brown dark:text-white">
+            Welcome to <br />
+            <span className="text-brand-cream dark:text-brand-orange">EduRater</span>
+          </h1>
+        </div>
+      </header>
+
+      {/* SEARCH AREA */}
+      <section className="flex-1 w-full bg-brand-cream dark:bg-brand-brown flex items-start justify-center px-6 py-12">
+        <div className="w-full max-w-lg">
           <form
             className="w-full flex flex-col gap-3"
             onSubmit={(e) => {
@@ -51,7 +70,7 @@ export default function Home() {
             </button>
           </form>
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
