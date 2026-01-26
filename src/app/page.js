@@ -1,16 +1,21 @@
 "use client";
 
 /* lets component store and update values */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /* lets component navigate to different pages without a page reload */
 import { useRouter } from "next/navigation";
 import IconsScroll from "@/components/IconsScroll";
+import RecommendationCard from "@/components/Recommendation";
+import Link from "next/link";
 
 export default function Home() {
   const [q, setQ] = useState("");
   const [phase, setPhase] = useState("all");
   const [radiusKm, setRadiusKm] = useState(25);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const onSearch = () => {
@@ -37,6 +42,50 @@ export default function Home() {
     "/icons/Sodium.png"
   ];
 
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 3) {
+      setSuggestions([]);
+      setSuggestionLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      setError("");
+      setSuggestions([]);
+      
+      setSuggestionLoading(true);
+      const phaseParam = phase !== "all" ? `&phase=${encodeURIComponent(phase)}` : "";
+      const response = await fetch(`/api/schools?q=${encodeURIComponent(term)}${phaseParam}&limit=5`);
+      const body = await response.json();
+
+      if (!response.ok) {
+        setError(body.error || "An error occurred while fetching suggestions.");
+        setSuggestionLoading(false);
+        return;
+      }
+
+      const rows = body.data || [];
+      const normalizedPhase = (phase || "all").toLowerCase();
+      const filtered =
+        normalizedPhase === "all"
+          ? rows
+          : rows.filter((row) => {
+              const raw = `${row?.["PhaseOfEducation (name)"] || ""}`.toLowerCase();
+              if (!raw) return false;
+              if (normalizedPhase === "primary") return raw.includes("primary");
+              if (normalizedPhase === "secondary") return raw.includes("secondary");
+              if (normalizedPhase === "nursery") return raw.includes("nursery");
+              return raw.includes(normalizedPhase);
+            });
+      setSuggestions(filtered);
+      console.log("Suggestions:", filtered);
+      setSuggestionLoading(false);
+    };
+
+      load();
+  }, [q, phase, radiusKm]);
+
   return (
     <main className="min-h-screen flex flex-col">
       <header className="relative display-headings w-full min-h-[44vh] flex items-center justify-center bg-brand-blue">
@@ -60,13 +109,18 @@ export default function Home() {
               onSearch();
             }}
           >
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col gap-2 sm:flex-row rounded-md border border-brand-brown px-4 py-2 text-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream">
+              <div className="flex items-center justify-between text-sm font-semibold">
+                <span>Range {radiusKm} km</span>
+              </div>
               <input
-                type="text"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}   /* update q state on input change */
-                placeholder="Search for schools..."
-                className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue placeholder:text-brand-brown focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream dark:placeholder-brand-cream"
+                type="range"
+                min="1"
+                max="40"
+                step="1"
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                className="w-full"
               />
               <select
                 value={phase}
@@ -79,21 +133,38 @@ export default function Home() {
                 <option value="nursery">Nursery</option>
               </select>
             </div>
-            <div className="flex flex-col gap-2 rounded-md border border-brand-brown px-4 py-2 text-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream">
-              <div className="flex items-center justify-between text-sm font-semibold">
-                <span>Range</span>
-                <span>{radiusKm} km</span>
-              </div>
+            
+            <div className="flex flex-col gap-3 sm:flex-row">
               <input
-                type="range"
-                min="1"
-                max="40"
-                step="1"
-                value={radiusKm}
-                onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="w-full"
+                type="text"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}   /* update q state on input change */
+                placeholder="Search for schools..."
+                className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue placeholder:text-brand-brown focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream dark:placeholder-brand-cream"
               />
+              
             </div>
+            
+            {suggestionLoading && (
+              <p className="text-sm text-brand-brown dark:text-brand-cream">Loading suggestions...</p>
+            )}
+
+            {suggestions.length > 0 && (
+              <div className="bg-brand-brown dark:bg-brand-cream p-4 rounded-md border border-brand-brown dark:border-brand-cream">
+                <div className="grid grid-cols-1">
+                  {suggestions.map((suggestion) => (
+                    <Link
+                      key={suggestion.URN}
+                      href={`/schools/${suggestion.URN}`}
+                      className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue hover:scale-[1.01] transition"
+                    >
+                      <RecommendationCard key={suggestion.URN} school={suggestion} num={0} />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}  
+            
 
             <button
               type="button"
