@@ -114,26 +114,26 @@ export default function SchoolsPage() {
                     }}
                 >
                     <input
-                    type="text"
-                    value={nextQ}
-                    onChange={(e) => setNextQ(e.target.value)}
-                    placeholder="Search for schools..."
-                    className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue placeholder:text-brand-brown focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream dark:placeholder-brand-cream"
+                        type="text"
+                        value={nextQ}
+                        onChange={(e) => setNextQ(e.target.value)}
+                        placeholder="Search for schools..."
+                        className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue placeholder:text-brand-brown focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream dark:placeholder-brand-cream"
                     />
 
                     <select
-                    value={nextPhase}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setNextPhase(value);
-                      if (nextQ.trim()) {
-                        const phaseParam = value !== "all" ? `&phase=${encodeURIComponent(value)}` : "";
-                        const limitParam = value !== "all" ? "&limit=100" : "";
-                        const radiusParam = `&radiusKm=${encodeURIComponent(nextRadius)}`;
-                        router.push(`/schools?q=${encodeURIComponent(nextQ.trim())}${phaseParam}${limitParam}${radiusParam}`);
-                      }
-                    }}
-                    className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream sm:w-44"
+                        value={nextPhase}
+                        onChange={(e) => {
+                        const value = e.target.value;
+                        setNextPhase(value);
+                        if (nextQ.trim()) {
+                            const phaseParam = value !== "all" ? `&phase=${encodeURIComponent(value)}` : "";
+                            const limitParam = value !== "all" ? "&limit=100" : "";
+                            const radiusParam = `&radiusKm=${encodeURIComponent(nextRadius)}`;
+                            router.push(`/schools?q=${encodeURIComponent(nextQ.trim())}${phaseParam}${limitParam}${radiusParam}`);
+                        }
+                        }}
+                        className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream sm:w-44"
                     >
                     <option value="all">All phases</option>
                     <option value="primary">Primary</option>
