@@ -162,7 +162,7 @@ export default function Home() {
                     <Link
                       key={suggestion.URN}
                       href={`/schools/${suggestion.URN}`}
-                      className="block focus:outline-none focus:ring-2 focus:ring-brand-blue hover:scale-[1.01] transition"
+                      className="block focus:outline-none hover:scale-[1.01] transition"
                     >
                       <RecommendationCard key={suggestion.URN} school={suggestion} />
                     </Link>
