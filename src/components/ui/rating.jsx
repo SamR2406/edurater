@@ -17,12 +17,29 @@ export default function Rating({
   disabled = false,
   className,
   size = "md",
+  showValue = false,
+  roundToHalf = false,
+  valueDisplay = "rounded",
+  allowHalfSelect = false,
 }) {
   const uid = useId();
   const [hoverValue, setHoverValue] = useState(null);
 
   const current = Number(value);
   const displayValue = hoverValue ?? (Number.isFinite(current) ? current : 0);
+  const fillValue = roundToHalf
+    ? Math.round(displayValue * 2) / 2
+    : displayValue;
+  const exactValue = Number.isFinite(current) ? Math.round(current * 10) / 10 : 0;
+  const roundedValue = Number.isFinite(current)
+    ? roundToHalf
+      ? Math.round(current * 2) / 2
+      : Math.round(current * 10) / 10
+    : 0;
+  const textValue = valueDisplay === "exact" ? exactValue : roundedValue;
+  const formattedValue = String(textValue).replace(/\.0$/, "");
+  const isInteractive = !disabled && typeof onChange === "function";
+  const step = allowHalfSelect ? 0.5 : 1;
 
   const sizeClass =
     size === "m"
@@ -45,22 +62,54 @@ export default function Rating({
 
         // Fill fraction for this star (0..1)
         // e.g. rating=3.2 => star 4 gets 0.2
-        const fill = clamp(displayValue - i, 0, 1);
+        const fill = clamp(fillValue - i, 0, 1);
 
         // SVG viewBox width is 24, so we clip with a rect of width 24*fill
         const clipId = `${uid}-star-clip-${i}`;
         const clipWidth = 24 * fill;
+
+        const handlePointer = (event) => {
+          if (!isInteractive) return;
+          if (!allowHalfSelect) {
+            onChange(String(starValue));
+            return;
+          }
+
+          const rect = event.currentTarget.getBoundingClientRect();
+          const offsetX = event.clientX - rect.left;
+          const isHalf = offsetX < rect.width / 2;
+          const nextValue = isHalf ? starValue - 0.5 : starValue;
+          onChange(String(nextValue));
+        };
+
+        const handleHover = (event) => {
+          if (!isInteractive) return;
+          if (!allowHalfSelect) {
+            setHoverValue(starValue);
+            return;
+          }
+
+          const rect = event.currentTarget.getBoundingClientRect();
+          const offsetX = event.clientX - rect.left;
+          const isHalf = offsetX < rect.width / 2;
+          const nextValue = isHalf ? starValue - 0.5 : starValue;
+          setHoverValue(nextValue);
+        };
 
         return (
           <button
             key={starValue}
             type="button"
             disabled={disabled}
-            onClick={() => onChange?.(String(starValue))}
-            onMouseEnter={() => setHoverValue(starValue)}
-            onMouseLeave={() => setHoverValue(null)}
+            onClick={isInteractive ? handlePointer : undefined}
+            onPointerDown={isInteractive ? handlePointer : undefined}
+            onMouseMove={isInteractive ? handleHover : undefined}
+            onMouseEnter={isInteractive ? handleHover : undefined}
+            onMouseLeave={isInteractive ? () => setHoverValue(null) : undefined}
             className={cn(
               "inline-flex flex-shrink-0 items-center justify-center",
+              isInteractive && "cursor-pointer",
+              disabled && "cursor-not-allowed opacity-60",
               sizeClass
             )}
             aria-label={`Rate ${starValue} out of 5`}
@@ -78,20 +127,24 @@ export default function Rating({
               </defs>
 
               {/* Base star (empty/gray) */}
-              <path d={STAR_PATH} fill="currentColor" className="text-gray-300" />
+              <path d={STAR_PATH} style={{ fill: "#d1d5db" }} />
 
               {/* Filled portion (yellow), clipped */}
               <g clipPath={`url(#${clipId})`}>
                 <path
                   d={STAR_PATH}
-                  fill="currentColor"
-                  className="text-brand-orange"
+                  style={{ fill: "var(--color-brand-orange, #FF7B00)" }}
                 />
               </g>
             </svg>
           </button>
         );
       })}
+      {showValue ? (
+        <span className="ml-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+          {formattedValue}
+        </span>
+      ) : null}
     </div>
   );
 }

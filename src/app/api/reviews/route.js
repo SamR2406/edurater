@@ -92,8 +92,14 @@ export async function POST(request) {
     : [];
 
   // 3) Require at least one numeric rating (1–5)
-  const hasAtLeastOneRating = normalizedSections.some(
-    (s) => typeof s.rating === "number"
+  const isValidRating = (rating) =>
+    typeof rating === "number" &&
+    rating >= 1 &&
+    rating <= 5 &&
+    Math.round(rating * 2) / 2 === rating;
+
+  const hasAtLeastOneRating = normalizedSections.some((s) =>
+    isValidRating(s.rating)
   );
 
   if (!hasAtLeastOneRating) {

@@ -11,7 +11,9 @@ export async function GET(request) {
 
   const { data, error: fetchError } = await supabaseUser
     .from("staff_requests")
-    .select("id, school_id, status, evidence, created_at")
+    .select(
+      "id, school_id, status, full_name, position, school_email, evidence, created_at"
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -30,10 +32,16 @@ export async function POST(request) {
 
   const supabaseUser = createUserClient(token);
   const body = await request.json().catch(() => ({}));
-  const { schoolId, evidence } = body;
+  const { schoolId, evidence, fullName, position, schoolEmail } = body;
 
   if (!schoolId) {
     return NextResponse.json({ error: "Missing schoolId." }, { status: 400 });
+  }
+  if (!fullName?.trim()) {
+    return NextResponse.json({ error: "Missing full name." }, { status: 400 });
+  }
+  if (!position?.trim()) {
+    return NextResponse.json({ error: "Missing position." }, { status: 400 });
   }
 
   const { data: profile, error: profileError } = await supabaseUser
@@ -77,9 +85,12 @@ export async function POST(request) {
       user_id: user.id,
       school_id: schoolId,
       status: "pending",
+      full_name: fullName.trim(),
+      position: position.trim(),
+      school_email: schoolEmail?.trim() || null,
       evidence: evidence ?? null,
     })
-    .select("id, school_id, status, created_at")
+    .select("id, school_id, status, full_name, position, school_email, created_at")
     .single();
 
   if (insertError) {

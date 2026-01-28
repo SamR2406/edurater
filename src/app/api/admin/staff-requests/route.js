@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireSuperAdmin } from "@/lib/auth/server";
+import { requireAdmin } from "@/lib/auth/server";
 
 const allowedStatuses = new Set(["pending", "approved", "rejected"]);
 
 export async function GET(request) {
-  const authResult = await requireSuperAdmin(request);
+  const authResult = await requireAdmin(request);
   if (authResult.error) {
     return NextResponse.json(
       { error: authResult.error },
@@ -17,7 +17,9 @@ export async function GET(request) {
 
   let query = authResult.supabaseUser
     .from("staff_requests")
-    .select("id, user_id, school_id, status, evidence, created_at")
+    .select(
+      "id, user_id, school_id, status, full_name, position, school_email, evidence, created_at"
+    )
     .order("created_at", { ascending: false });
 
   if (status) {
@@ -34,7 +36,7 @@ export async function GET(request) {
 }
 
 export async function PATCH(request) {
-  const authResult = await requireSuperAdmin(request);
+  const authResult = await requireAdmin(request);
   if (authResult.error) {
     return NextResponse.json(
       { error: authResult.error },
@@ -43,7 +45,7 @@ export async function PATCH(request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { id, status } = body;
+  const { id, status, schoolId } = body;
 
   if (!id || !status) {
     return NextResponse.json(
@@ -70,19 +72,26 @@ export async function PATCH(request) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
+  const updatePayload = { status };
+  if (schoolId) {
+    updatePayload.school_id = schoolId;
+  }
+
   const { error: updateError } = await authResult.supabaseUser
     .from("staff_requests")
-    .update({ status })
+    .update(updatePayload)
     .eq("id", id);
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
+  const finalSchoolId = schoolId || requestRow.school_id;
+
   if (status === "approved") {
     await authResult.supabaseUser
       .from("profiles")
-      .update({ role: "staff_verified", school_id: requestRow.school_id })
+      .update({ role: "staff_verified", school_id: finalSchoolId })
       .eq("id", requestRow.user_id);
   }
 

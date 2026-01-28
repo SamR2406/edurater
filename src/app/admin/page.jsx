@@ -183,7 +183,12 @@ export default function AdminDashboardPage() {
                         className="border-b border-slate-200 last:border-0"
                       >
                         <td className="py-3 pr-4 font-medium">
-                          {row.school_name}
+                          <Link
+                            href={`/schools/${row.school_urn}`}
+                            className="inline-flex items-center gap-2 text-slate-900 hover:text-brand-orange"
+                          >
+                            {row.school_name}
+                          </Link>
                         </td>
                         <td className="py-3 pr-4">
                           {row.school_urn}

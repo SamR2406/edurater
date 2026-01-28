@@ -11,6 +11,8 @@
 // useEffect runs side effects after render (get session, fetch reports)
 import { useEffect, useState } from "react";
 
+import Link from "next/link";
+
 import { supabaseClient } from "@/lib/supabase/client"; // browser-side Supabase client for reading the current session/token
 import ReviewCard from "@/components/ReviewCard";   // UI component that displays the review content for each report
 
@@ -112,7 +114,19 @@ useEffect(() => {
                             </div>
 
                             {/* show the actual review content using ReviewCard component */}
-                            <ReviewCard review={r.review} />
+                            {r.review?.school_urn ? (
+                                <Link
+                                    href={`/schools/${r.review.school_urn}`}
+                                    className="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                    aria-label="View school review profile"
+                                >
+                                    <div className="transition-transform group-hover:-translate-y-0.5">
+                                        <ReviewCard review={r.review} />
+                                    </div>
+                                </Link>
+                            ) : (
+                                <ReviewCard review={r.review} />
+                            )}
                         </div>
                     ))}
                 </div>
