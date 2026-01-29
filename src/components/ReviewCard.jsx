@@ -8,12 +8,16 @@ export default function ReviewCard({ review, showControls, onEdit, onDelete, onR
             <div className="mb-3">
                 <Rating
                     value={
-                        review.rating_computed != null
-                            ? String(review.rating_computed)
-                            : ""
+                        review.rating_computed ??
+                        review.rating ??
+                        review.overall_rating ??
+                        ""
                     }
                     disabled
                     size="lg"
+                    showValue
+                    roundToHalf
+                    valueDisplay="exact"
                 />
             </div>
             

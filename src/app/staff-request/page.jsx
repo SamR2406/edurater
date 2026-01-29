@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoleGate from "@/components/RoleGate";
 import { supabaseClient } from "@/lib/supabase/client";
 import { useAuthProfile } from "@/lib/auth/useAuthProfile";
 
@@ -9,6 +8,9 @@ export default function StaffRequestPage() {
   const { session, profile, loading: authLoading } = useAuthProfile();
   const [schools, setSchools] = useState([]);
   const [schoolId, setSchoolId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [position, setPosition] = useState("");
+  const [schoolEmail, setSchoolEmail] = useState("");
   const [evidence, setEvidence] = useState("");
   const [requests, setRequests] = useState([]);
   const [status, setStatus] = useState({ type: "idle", message: "" });
@@ -86,6 +88,14 @@ export default function StaffRequestPage() {
       setError("Please choose a school.");
       return;
     }
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (!position.trim()) {
+      setError("Please enter your position.");
+      return;
+    }
 
     setStatus({ type: "loading", message: "Submitting request..." });
 
@@ -95,7 +105,13 @@ export default function StaffRequestPage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ schoolId, evidence }),
+      body: JSON.stringify({
+        schoolId,
+        fullName,
+        position,
+        schoolEmail,
+        evidence,
+      }),
     });
     const body = await response.json();
 
@@ -107,6 +123,9 @@ export default function StaffRequestPage() {
     setMessage("Request submitted. We will review it shortly.");
     setEvidence("");
     setSchoolId("");
+    setFullName("");
+    setPosition("");
+    setSchoolEmail("");
     loadRequests(session.access_token);
   };
 
@@ -129,8 +148,7 @@ export default function StaffRequestPage() {
           </p>
         </div>
 
-        <RoleGate>
-          {!canRequest ? (
+        {!canRequest ? (
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
               <p className="text-sm text-slate-700">
                 Your account already has staff access.
@@ -166,6 +184,41 @@ export default function StaffRequestPage() {
                 ) : null}
 
                 <label className="block text-sm font-medium text-slate-700">
+                  Full name
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                    placeholder="Jane Doe"
+                    required
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-slate-700">
+                  Position
+                  <input
+                    type="text"
+                    value={position}
+                    onChange={(event) => setPosition(event.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                    placeholder="Teacher, Head of Department, etc."
+                    required
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-slate-700">
+                  School email (optional)
+                  <input
+                    type="email"
+                    value={schoolEmail}
+                    onChange={(event) => setSchoolEmail(event.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                    placeholder="you@school.edu"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-slate-700">
                   Evidence (optional)
                   <textarea
                     value={evidence}
@@ -177,16 +230,21 @@ export default function StaffRequestPage() {
                 </label>
               </div>
 
+              {!session ? (
+                <p className="mt-4 text-xs text-slate-600">
+                  Please sign in to submit a staff request.
+                </p>
+              ) : null}
+
               <button
                 type="submit"
-                disabled={status.type === "loading"}
+                disabled={status.type === "loading" || !session}
                 className="mt-6 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Submit request
               </button>
             </form>
           )}
-        </RoleGate>
 
         {status.type !== "idle" ? (
           <p

@@ -157,6 +157,16 @@ export default function LoginPage() {
             {status.message}
           </p>
         ) : null}
+
+        <div className="text-center text-sm text-brand-cream">
+          <p>Are you school staff/teacher?</p>
+          <a
+            href="/staff-request"
+            className="mt-2 inline-flex items-center justify-center rounded-full border border-brand-cream px-4 py-2 text-xs font-semibold text-brand-cream transition hover:border-brand-brown hover:text-brand-brown dark:hover:border-brand-orange dark:hover:text-brand-orange"
+          >
+            Request staff access
+          </a>
+        </div>
       </div>
     </main>
   );

@@ -6,6 +6,8 @@ import ReviewForm from "@/components/ReviewForm";
 import ReportForm from "@/components/ReportForm";
 import { supabaseClient } from "@/lib/supabase/client";
 
+/* schoolUrn: URN of the school to load reviews for
+    refreshKey: when this changes, reviews are reloaded */
 export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     const [reviews, setReviews] = useState([]);
     const [schoolScore, setSchoolScore] = useState(null);
@@ -122,19 +124,23 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
                 />
             ) : null}
 
-            {reportingReview ? (
-                <ReportForm
-                    reviewId={reportingReview.id}
-                    onCancel={() => setReportingReview(null)}
-                    onReported={() => {
-                        setReportingReview(null);
+            {loading && <p className="text-sm text-gray-600 dark:text-gray-300">Loading reviews...</p>}
+
+            {editingReview ? (
+                <ReviewForm
+                    schoolUrn={schoolUrn}
+                    reviewId={editingReview.id}
+                    initialData={editingReview}
+                    onCancel={() => setEditingReview(null)}
+                    onPosted={() => {
+                        setEditingReview(null);
                         setLocalRefresh((prev) => prev + 1);
                     }}
                 />
             ) : null}
 
-            {loading && <p className="text-sm text-brand-cream dark:text-brand-cream">Loading reviews...</p>}
-            {error && <p className="text-sm text-brand-orange">{error}</p>}
+            {loading && <p className="text-sm text-gray-600 dark:text-gray-300">Loading reviews...</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
             {!loading && !error && reviews.length === 0 && (
                 <p className="text-sm text-brand-blue dark:text-brand-cream">

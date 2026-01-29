@@ -53,6 +53,45 @@ export async function requireSuperAdmin(request) {
   return { user, profile, error: null, status: 200, supabaseUser };
 }
 
+export async function requireAdmin(request) {
+  const { user, error, token } = await getUserFromRequest(request);
+  if (error || !user) {
+    return { error: "Unauthorized.", status: 401 };
+  }
+
+  const supabaseUser = createUserClient(token);
+
+  const { data: profile, error: profileError } = await supabaseUser
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return { error: profileError.message, status: 500 };
+  }
+
+  if (profile?.role === "super_admin") {
+    return { user, profile, error: null, status: 200, supabaseUser };
+  }
+
+  const { data: adminRow, error: adminError } = await supabaseUser
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (adminError) {
+    return { error: adminError.message, status: 500 };
+  }
+
+  if (!adminRow) {
+    return { error: "Forbidden.", status: 403 };
+  }
+
+  return { user, profile, error: null, status: 200, supabaseUser };
+}
+
 export function createUserClient(token) {
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {

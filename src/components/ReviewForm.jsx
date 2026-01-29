@@ -89,7 +89,7 @@ export default function ReviewForm({
     if (nums.length === 0) return null;
 
     const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
-    return Math.round(avg * 10) / 10; // 1 decimal
+    return Math.round(avg * 10) / 10; // display exact to 1 decimal
   }, [sections]);
 
   const handleSubmit = async (e) => {
@@ -225,13 +225,20 @@ export default function ReviewForm({
           </label>
 
           <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <Rating value={computedOverall != null ? String(computedOverall) : ""} disabled />
+            <Rating
+              value={computedOverall != null ? String(computedOverall) : ""}
+              disabled
+              roundToHalf
+            />
             <span className="text-sm text-gray-600 dark:text-gray-300">
               {computedOverall != null
                 ? `${computedOverall} / 5`
                 : "Rate the sections to see an overall score"}
             </span>
           </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Pick ratings below to calculate your overall score.
+          </p>
 
           {computedOverall != null ? (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -296,6 +303,7 @@ export default function ReviewForm({
                       value={section.rating}
                       disabled={section.isNa}
                       size="sm"
+                      allowHalfSelect
                       onChange={(val) =>
                         setSections((prev) =>
                           prev.map((item, itemIndex) =>

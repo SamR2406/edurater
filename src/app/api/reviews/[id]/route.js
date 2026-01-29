@@ -48,8 +48,14 @@ export async function PATCH(request, { params }) {
       }));
 
     // Enforce your rules on edit too
-    const hasAtLeastOneRating = normalizedSections.some(
-      (s) => typeof s.rating === "number" && s.rating >= 1 && s.rating <= 5
+    const isValidRating = (rating) =>
+      typeof rating === "number" &&
+      rating >= 1 &&
+      rating <= 5 &&
+      Math.round(rating * 2) / 2 === rating;
+
+    const hasAtLeastOneRating = normalizedSections.some((s) =>
+      isValidRating(s.rating)
     );
 
     const hasAtLeastOneSectionComment = normalizedSections.some(
