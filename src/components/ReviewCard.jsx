@@ -1,6 +1,14 @@
 import Rating from "@/components/ui/rating";
 
-export default function ReviewCard({ review, showControls, onEdit, onDelete, onReport }) {
+export default function ReviewCard({
+    review,
+    showEdit,
+    showDelete,
+    showReport,
+    onEdit,
+    onDelete,
+    onReport,
+}) {
     if (!review) return null;   /* prevent rendering if no review data is provided */
 
     return (
@@ -29,29 +37,35 @@ export default function ReviewCard({ review, showControls, onEdit, onDelete, onR
                 {review.body}
             </p>
 
-            {showControls ? (
+            {(showEdit || showDelete || showReport) ? (
                 <div className="mt-4 flex gap-3 text-sm font-semibold">
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        className="text-blue-600 hover:text-blue-700"
-                    >
-                        Edit
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onDelete}
-                        className="text-red-600 hover:text-red-700"
-                    >
-                        Delete
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onReport}
-                        className="text-red-600 hover:text-red-700"
-                    >
-                        Report
-                    </button>
+                    {showEdit ? (
+                        <button
+                            type="button"
+                            onClick={onEdit}
+                            className="text-blue-600 hover:text-blue-700"
+                        >
+                            Edit
+                        </button>
+                    ) : null}
+                    {showDelete ? (
+                        <button
+                            type="button"
+                            onClick={onDelete}
+                            className="text-red-600 hover:text-red-700"
+                        >
+                            Delete
+                        </button>
+                    ) : null}
+                    {showReport ? (
+                        <button
+                            type="button"
+                            onClick={onReport}
+                            className="text-red-600 hover:text-red-700"
+                        >
+                            Report
+                        </button>
+                    ) : null}
                 </div>
             ) : null}
         </div>

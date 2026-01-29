@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createUserClient, getUserFromRequest } from "@/lib/auth/server";
+import { createUserClient, getUserFromRequest, requireAdmin } from "@/lib/auth/server";
 
 export async function PATCH(request, { params }) {
   const { user, error, token } = await getUserFromRequest(request);
@@ -132,6 +132,29 @@ export async function DELETE(request, { params }) {
 
   if (!review) {
     return NextResponse.json({ error: "Review not found." }, { status: 404 });
+  }
+
+  const isOwner = review.user_id === user.id;
+
+  if (!isOwner) {
+    const adminResult = await requireAdmin(request);
+    if (adminResult.error) {
+      return NextResponse.json(
+        { error: adminResult.error },
+        { status: adminResult.status }
+      );
+    }
+
+    const { error: deleteError } = await adminResult.supabaseUser
+      .from("reviews")
+      .delete()
+      .eq("id", reviewId);
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: { id: reviewId } });
   }
 
   const { error: deleteError } = await supabaseUser

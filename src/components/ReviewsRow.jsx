@@ -5,6 +5,7 @@ import ReviewCard from "@/components/ReviewCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReportForm from "@/components/ReportForm";
 import { supabaseClient } from "@/lib/supabase/client";
+import { useAuthProfile } from "@/lib/auth/useAuthProfile";
 
 /* schoolUrn: URN of the school to load reviews for
     refreshKey: when this changes, reviews are reloaded */
@@ -19,6 +20,9 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     const [editingReview, setEditingReview] = useState(null);
     const [reportingReview, setReportingReview] = useState(null);
     const [localRefresh, setLocalRefresh] = useState(0);
+    const { profile } = useAuthProfile();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const canReport = Boolean(accessToken);
 
     useEffect(() => {
         const loadSession = async () => {
@@ -38,6 +42,25 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
 
         return () => sub.subscription.unsubscribe();
     }, []);
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            if (!accessToken) {
+                setIsAdmin(false);
+                return;
+            }
+
+            const res = await fetch("/api/admin/me", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+
+            setIsAdmin(res.ok);
+        };
+
+        checkAdmin();
+    }, [accessToken]);
 
     useEffect(() => {
         const load = async () => {
@@ -154,7 +177,9 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
                         <ReviewCard
                             key={review.id}
                             review={review}
-                            showControls={review.user_id === currentUserId}
+                            showEdit={review.user_id === currentUserId}
+                            showDelete={isAdmin}
+                            showReport={canReport}
                             onEdit={() => setEditingReview(review)}
                             onDelete={() => handleDelete(review.id)}
                             onReport={() => setReportingReview(review)}
