@@ -214,6 +214,7 @@ export default function ReviewForm({
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-black dark:text-white"
             placeholder="Optional title"
           />
