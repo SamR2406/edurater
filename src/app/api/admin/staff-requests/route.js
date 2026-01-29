@@ -18,7 +18,7 @@ export async function GET(request) {
   let query = authResult.supabaseUser
     .from("staff_requests")
     .select(
-      "id, user_id, school_id, status, full_name, position, school_email, evidence, created_at"
+      "id, user_id, school_id, status, full_name, position, school_email, evidence, created_at, schools(name, domain)"
     )
     .order("created_at", { ascending: false });
 
@@ -89,18 +89,22 @@ export async function PATCH(request) {
   const finalSchoolId = schoolId || requestRow.school_id;
 
   if (status === "approved") {
-    await authResult.supabaseUser
-      .from("profiles")
-      .update({ role: "staff_verified", school_id: finalSchoolId })
-      .eq("id", requestRow.user_id);
+    if (requestRow.user_id) {
+      await authResult.supabaseUser
+        .from("profiles")
+        .update({ role: "staff_verified", school_id: finalSchoolId })
+        .eq("id", requestRow.user_id);
+    }
   }
 
   if (status === "rejected") {
-    await authResult.supabaseUser
-      .from("profiles")
-      .update({ role: "user", school_id: null })
-      .eq("id", requestRow.user_id)
-      .eq("role", "staff_pending");
+    if (requestRow.user_id) {
+      await authResult.supabaseUser
+        .from("profiles")
+        .update({ role: "user", school_id: null })
+        .eq("id", requestRow.user_id)
+        .eq("role", "staff_pending");
+    }
   }
 
   return NextResponse.json({ data: { id, status } });

@@ -26,6 +26,10 @@ export default function AdminDashboardPage() {
   const [dataLoading, setDataLoading] = useState(false);  // true while loading admin dashboard data
   const [rows, setRows] = useState([]);   // table data from school-review-counts API
   const [error, setError] = useState(""); // message to show user if something fails or access is denied
+  const [staffRequests, setStaffRequests] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffError, setStaffError] = useState("");
+  const [staffRefresh, setStaffRefresh] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -121,6 +125,63 @@ export default function AdminDashboardPage() {
     loadCounts();
   }, [session?.access_token]);
 
+  useEffect(() => {
+    const loadStaffRequests = async () => {
+      if (!session?.access_token) {
+        return;
+      }
+
+      setStaffLoading(true);
+      setStaffError("");
+
+      const res = await fetch("/api/admin/staff-requests?status=pending", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setStaffError(body.error || "Failed to load staff requests.");
+        setStaffRequests([]);
+        setStaffLoading(false);
+        return;
+      }
+
+      setStaffRequests(body.data ?? []);
+      setStaffLoading(false);
+    };
+
+    loadStaffRequests();
+  }, [session?.access_token, staffRefresh]);
+
+  const handleStaffUpdate = async (id, status, schoolId) => {
+    if (!session?.access_token) {
+      return;
+    }
+
+    setStaffError("");
+
+    const res = await fetch("/api/admin/staff-requests", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ id, status, schoolId }),
+    });
+
+    const body = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setStaffError(body.error || "Failed to update request.");
+      return;
+    }
+
+    setStaffRefresh((prev) => prev + 1);
+  };
+
   return (
     <main className="min-h-screen bg-white text-slate-900">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-16">
@@ -205,6 +266,100 @@ export default function AdminDashboardPage() {
 
             {/* mounts reported reviews component underneath the counts table */}
             <ReportedReviewsRow />
+          </div>
+        )}
+
+        {!authLoading && session && !error && (
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Staff requests</h2>
+                <p className="text-sm text-slate-600">
+                  Review pending staff access requests.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStaffRefresh((prev) => prev + 1)}
+                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {staffError ? (
+              <p className="mt-4 text-sm text-red-600">{staffError}</p>
+            ) : null}
+
+            {staffLoading ? (
+              <p className="mt-4 text-sm text-slate-600">
+                Loading staff requests...
+              </p>
+            ) : staffRequests.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-600">
+                No pending staff requests.
+              </p>
+            ) : (
+              <div className="mt-4 space-y-4">
+                {staffRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="rounded-2xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1 text-sm text-slate-700">
+                        <p className="font-semibold">{request.full_name}</p>
+                        <p>{request.position}</p>
+                        <p className="text-slate-500">
+                          {request.school_email || "No email provided"}
+                        </p>
+                        <p className="text-slate-500">
+                          School:{" "}
+                          {request.schools?.name ?? request.school_id}
+                          {request.schools?.domain
+                            ? ` (${request.schools.domain})`
+                            : ""}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Submitted:{" "}
+                          {new Date(request.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStaffUpdate(request.id, "approved")
+                          }
+                          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStaffUpdate(request.id, "rejected")
+                          }
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                    {request.evidence ? (
+                      <p className="mt-3 text-sm text-slate-600">
+                        Evidence: {request.evidence}
+                      </p>
+                    ) : null}
+                    {!request.user_id ? (
+                      <p className="mt-2 text-xs text-amber-600">
+                        Guest request (no linked account).
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

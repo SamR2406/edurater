@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createUserClient, getUserFromRequest } from "@/lib/auth/server";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET(request) {
   const { user, error, token } = await getUserFromRequest(request);
@@ -26,11 +27,6 @@ export async function GET(request) {
 
 export async function POST(request) {
   const { user, error, token } = await getUserFromRequest(request);
-  if (error || !user) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
-  const supabaseUser = createUserClient(token);
   const body = await request.json().catch(() => ({}));
   const { schoolId, evidence, fullName, position, schoolEmail } = body;
 
@@ -43,6 +39,39 @@ export async function POST(request) {
   if (!position?.trim()) {
     return NextResponse.json({ error: "Missing position." }, { status: 400 });
   }
+
+  if (error || !user) {
+    if (!schoolEmail?.trim()) {
+      return NextResponse.json(
+        { error: "School email is required for guest requests." },
+        { status: 400 }
+      );
+    }
+
+    const { data: staffRequest, error: insertError } = await supabaseServer
+      .from("staff_requests")
+      .insert({
+        user_id: null,
+        school_id: schoolId,
+        status: "pending",
+        full_name: fullName.trim(),
+        position: position.trim(),
+        school_email: schoolEmail.trim(),
+        evidence: evidence ?? null,
+      })
+      .select(
+        "id, school_id, status, full_name, position, school_email, created_at"
+      )
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: staffRequest }, { status: 201 });
+  }
+
+  const supabaseUser = createUserClient(token);
 
   const { data: profile, error: profileError } = await supabaseUser
     .from("profiles")

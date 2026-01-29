@@ -16,6 +16,7 @@ export default function NavBar() {
   const canSeeStaff = ["staff_verified", "super_admin"].includes(
     profile?.role
   );
+  const canSeeAdmin = profile?.role === "super_admin";
   const isSignedIn = Boolean(session);
 
   // no admin link logic
@@ -155,16 +156,31 @@ export default function NavBar() {
                 </Link>
               </li>
             ) : null}
+            {canSeeAdmin ? (
+              <li>
+                <Link href="/admin" className="block py-2 px-3 font-bold text-brand-blue hover:text-brand-orange dark:text-brand-cream dark:hover:text-brand-orange">
+                  Admin
+                </Link>
+              </li>
+            ) : null}
             {!loading ? (
               <li>
                 {isSignedIn ? (
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    className="block py-2 px-3 font-bold text-brand-orange dark:text-brand-orange hover:text-brand-brown dark:hover:text-brand-blue" 
-                  >
-                    Sign out
-                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+                    <Link
+                      href="/profile"
+                      className="block py-2 px-3 font-bold text-brand-orange hover:text-brand-brown dark:text-brand-orange dark:hover:text-brand-blue"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="block py-2 px-3 font-bold text-brand-orange dark:text-brand-orange hover:text-brand-brown dark:hover:text-brand-blue"
+                    >
+                      Sign out
+                    </button>
+                  </div>
                 ) : (
                   <Link href="/login" className="block py-2 px-3 font-bold text-brand-orange hover:text-brand-brown dark:text-brand-orange dark:hover:text-brand-blue">
                     Sign in

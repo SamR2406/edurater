@@ -7,7 +7,11 @@ import { useAuthProfile } from "@/lib/auth/useAuthProfile";
 export default function StaffRequestPage() {
   const { session, profile, loading: authLoading } = useAuthProfile();
   const [schools, setSchools] = useState([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
+  const [schoolsError, setSchoolsError] = useState("");
   const [schoolId, setSchoolId] = useState("");
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [isSchoolMenuOpen, setIsSchoolMenuOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [position, setPosition] = useState("");
   const [schoolEmail, setSchoolEmail] = useState("");
@@ -30,6 +34,8 @@ export default function StaffRequestPage() {
   );
 
   const loadSchools = useCallback(async () => {
+    setSchoolsLoading(true);
+    setSchoolsError("");
     const { data, error } = await supabaseClient
       .from("schools")
       .select("id, name, domain")
@@ -37,10 +43,14 @@ export default function StaffRequestPage() {
 
     if (error) {
       setError(error.message);
+      setSchoolsError(error.message || "Failed to load schools.");
+      setSchools([]);
+      setSchoolsLoading(false);
       return;
     }
 
     setSchools(data ?? []);
+    setSchoolsLoading(false);
   }, [setError]);
 
   const loadRequests = useCallback(
@@ -80,10 +90,6 @@ export default function StaffRequestPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!session?.access_token) {
-      setError("Please sign in to request staff access.");
-      return;
-    }
     if (!schoolId) {
       setError("Please choose a school.");
       return;
@@ -99,12 +105,16 @@ export default function StaffRequestPage() {
 
     setStatus({ type: "loading", message: "Submitting request..." });
 
+    const headers = {
+      "Content-Type": "application/json",
+      ...(session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {}),
+    };
+
     const response = await fetch("/api/staff-requests", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
+      headers,
       body: JSON.stringify({
         schoolId,
         fullName,
@@ -126,13 +136,25 @@ export default function StaffRequestPage() {
     setFullName("");
     setPosition("");
     setSchoolEmail("");
-    loadRequests(session.access_token);
+    if (session?.access_token) {
+      loadRequests(session.access_token);
+    }
   };
 
   const selectedSchool = useMemo(
     () => schools.find((school) => school.id === schoolId),
     [schools, schoolId]
   );
+
+  const filteredSchools = useMemo(() => {
+    const query = schoolQuery.trim().toLowerCase();
+    if (!query) return schools;
+    return schools.filter((school) => {
+      const name = school.name?.toLowerCase() ?? "";
+      const domain = school.domain?.toLowerCase() ?? "";
+      return name.includes(query) || domain.includes(query);
+    });
+  }, [schools, schoolQuery]);
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
@@ -162,20 +184,81 @@ export default function StaffRequestPage() {
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-slate-700">
                   School
-                  <select
-                    value={schoolId}
-                    onChange={(event) => setSchoolId(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
-                  >
-                    <option value="">Select a school</option>
-                    {schools.map((school) => (
-                      <option key={school.id} value={school.id}>
-                        {school.name}
-                        {school.domain ? ` (${school.domain})` : ""}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative mt-2">
+                    <input
+                      type="text"
+                      value={schoolQuery}
+                      onChange={(event) => {
+                        setSchoolQuery(event.target.value);
+                        setSchoolId("");
+                        setIsSchoolMenuOpen(true);
+                      }}
+                      onFocus={() => setIsSchoolMenuOpen(true)}
+                      onBlur={() =>
+                        setTimeout(() => setIsSchoolMenuOpen(false), 150)
+                      }
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
+                      placeholder="Search by school name or domain"
+                      aria-label="Search schools"
+                      role="combobox"
+                      aria-expanded={isSchoolMenuOpen}
+                      aria-controls="school-search-options"
+                    />
+
+                    {isSchoolMenuOpen ? (
+                      <div
+                        id="school-search-options"
+                        className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-lg"
+                      >
+                        {schoolsLoading ? (
+                          <div className="px-4 py-3 text-sm text-slate-500">
+                            Loading schools...
+                          </div>
+                        ) : schoolsError ? (
+                          <div className="px-4 py-3 text-sm text-red-600">
+                            {schoolsError}
+                          </div>
+                        ) : filteredSchools.length === 0 ? (
+                          <div className="px-4 py-3 text-sm text-slate-500">
+                            No schools found. Try a different search.
+                          </div>
+                        ) : (
+                          filteredSchools.map((school) => (
+                            <button
+                              key={school.id}
+                              type="button"
+                              onClick={() => {
+                                setSchoolId(school.id);
+                                setSchoolQuery(
+                                  `${school.name}${school.domain ? ` (${school.domain})` : ""}`
+                                );
+                                setIsSchoolMenuOpen(false);
+                              }}
+                              className="w-full px-4 py-3 text-left text-sm text-slate-700 hover:bg-slate-50"
+                            >
+                              {school.name}
+                              {school.domain ? ` (${school.domain})` : ""}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 </label>
+
+                {!schoolsLoading && !schoolsError && schools.length === 0 ? (
+                  <p className="text-xs text-amber-600">
+                    No schools are available yet. An admin needs to load schools
+                    into the database.
+                  </p>
+                ) : null}
+
+                {schoolId && selectedSchool ? (
+                  <p className="text-xs text-slate-500">
+                    Selected: {selectedSchool.name}
+                    {selectedSchool.domain ? ` (${selectedSchool.domain})` : ""}
+                  </p>
+                ) : null}
 
                 {selectedSchool?.domain ? (
                   <p className="text-xs text-slate-500">
@@ -208,13 +291,14 @@ export default function StaffRequestPage() {
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
-                  School email (optional)
+                  School email {!session ? "(required)" : "(optional)"}
                   <input
                     type="email"
                     value={schoolEmail}
                     onChange={(event) => setSchoolEmail(event.target.value)}
                     className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-slate-400 focus:outline-none"
                     placeholder="you@school.edu"
+                    required={!session}
                   />
                 </label>
 
@@ -232,13 +316,14 @@ export default function StaffRequestPage() {
 
               {!session ? (
                 <p className="mt-4 text-xs text-slate-600">
-                  Please sign in to submit a staff request.
+                  You can submit without an account, but we need a school email
+                  to contact you.
                 </p>
               ) : null}
 
               <button
                 type="submit"
-                disabled={status.type === "loading" || !session}
+                disabled={status.type === "loading"}
                 className="mt-6 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Submit request
