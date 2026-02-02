@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { AnimatedGroup } from "@/components/ui/animated-group";
+import { Button } from "@/components/ui/button";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+} from "@/components/ui/pagination";
+import { usePagination } from "@/components/hooks/use-pagination";
 
 // Tells SchoolsMap to load in browser, not server, and to not load during server side rendering
 const SchoolsMap = dynamic(() => import("@/components/SchoolsMap"), { ssr: false });
@@ -17,9 +27,12 @@ export default function SchoolsPage() {
     const q = (searchParams.get("q") || "").trim();
     const phase = (searchParams.get("phase") || "all").trim().toLowerCase();
     const radiusParam = searchParams.get("radiusKm");
+    const pageParam = searchParams.get("page");
     const radiusKm = Number.isFinite(Number(radiusParam))
         ? Math.min(Math.max(Number(radiusParam), 1), 40)
         : 25;
+    const page = Number.isFinite(Number(pageParam)) && Number(pageParam) > 0 ? Math.floor(Number(pageParam)) : 1;
+    const pageSize = 50;
 
     const [nextQ, setNextQ] = useState("");
     const [nextPhase, setNextPhase] = useState("all");
@@ -29,6 +42,8 @@ export default function SchoolsPage() {
     const [schools, setSchools] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasNextPage, setHasNextPage] = useState(false);
 
     const [scoresByUrn, setScoresByUrn] = useState({});
 
@@ -76,10 +91,11 @@ export default function SchoolsPage() {
         if (!term) return;
 
         const phaseParam = nextPhase !== "all" ? `&phase=${encodeURIComponent(nextPhase)}` : "";
-        const limitParam = nextPhase !== "all" ? "&limit=100" : "";
+        const limitParam = `&limit=${pageSize}`;
         const radiusParam = `&radiusKm=${encodeURIComponent(nextRadius)}`;
+        const pageParam = `&page=1`;
         /* navigate to the schools page with the query as a query parameter */
-        router.push(`/schools?q=${encodeURIComponent(term)}${phaseParam}${limitParam}${radiusParam}`)
+        router.push(`/schools?q=${encodeURIComponent(term)}${phaseParam}${limitParam}${radiusParam}${pageParam}`)
     }
 
     useEffect(() => {
@@ -97,6 +113,8 @@ export default function SchoolsPage() {
             /* return error if no query is provided */
             if (!q) {
                 setError("Please provide a query to search for schools.");
+                setTotalCount(0);
+                setHasNextPage(false);
                 return;
             }
 
@@ -105,14 +123,26 @@ export default function SchoolsPage() {
 
             /* calls /api/schools with q and limit provided */
             const phaseParam = phase !== "all" ? `&phase=${encodeURIComponent(phase)}` : "";
-            const limitParam = phase !== "all" ? "&limit=100" : "&limit=30";
+            const limitParam = `&limit=${pageSize}`;
             const radiusQuery = `&radiusKm=${encodeURIComponent(radiusKm)}`;
-            const res = await fetch(`/api/schools?q=${encodeURIComponent(q)}${limitParam}${phaseParam}${radiusQuery}`);
-            const body = await res.json();  /* parses the JSON response into a JS object */
+            const pageQuery = `&page=${page}`;
+            let res;
+            let body = {};
+            try {
+                res = await fetch(`/api/schools?q=${encodeURIComponent(q)}${limitParam}${phaseParam}${radiusQuery}${pageQuery}`);
+                body = await res.json().catch(() => ({}));
+            } catch {
+                setError("Failed to load schools. Please try again.");
+                setTotalCount(0);
+                setLoading(false);
+                return;
+            }
 
             /* handles server errors if res.ok is false */
             if (!res.ok) {
                 setError(body.error || "An unknown error occurred.");
+                setTotalCount(0);
+                setHasNextPage(false);
                 setLoading(false);
                 return;
             }
@@ -132,12 +162,36 @@ export default function SchoolsPage() {
                           return raw.includes(normalizedPhase);
                       });
             setSchools(filtered);
+            if (Number.isFinite(Number(body.count))) {
+                setTotalCount(Number(body.count));
+                setHasNextPage(page < Math.max(1, Math.ceil(Number(body.count) / pageSize)));
+            } else {
+                setTotalCount(0);
+                setHasNextPage(Boolean(body.hasNext));
+            }
             setLoading(false);
         };
 
         load();
 
-    }, [q, phase, radiusKm]);
+    }, [q, phase, radiusKm, page]);
+
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const hasKnownTotal = totalCount > 0;
+    const paginationItemsToDisplay = 7;
+    const { pages, showLeftEllipsis, showRightEllipsis } = usePagination({
+        currentPage: page,
+        totalPages,
+        paginationItemsToDisplay,
+    });
+
+    const buildSearchUrl = (nextPage) => {
+        const phaseParam = phase !== "all" ? `&phase=${encodeURIComponent(phase)}` : "";
+        const limitParam = `&limit=${pageSize}`;
+        const radiusQuery = `&radiusKm=${encodeURIComponent(radiusKm)}`;
+        const pageQuery = `&page=${nextPage}`;
+        return `/schools?q=${encodeURIComponent(q)}${limitParam}${phaseParam}${radiusQuery}${pageQuery}`;
+    };
 
     return (
         <div className="display-headings min-h-screen text-brand-orange dark:text-brand-cream bg-brand-cream dark:bg-brand-brown p-4 md:px-32 py-6">
@@ -169,9 +223,10 @@ export default function SchoolsPage() {
                         setNextPhase(value);
                         if (nextQ.trim()) {
                             const phaseParam = value !== "all" ? `&phase=${encodeURIComponent(value)}` : "";
-                            const limitParam = value !== "all" ? "&limit=100" : "";
+                            const limitParam = `&limit=${pageSize}`;
                             const radiusParam = `&radiusKm=${encodeURIComponent(nextRadius)}`;
-                            router.push(`/schools?q=${encodeURIComponent(nextQ.trim())}${phaseParam}${limitParam}${radiusParam}`);
+                            const pageParam = `&page=1`;
+                            router.push(`/schools?q=${encodeURIComponent(nextQ.trim())}${phaseParam}${limitParam}${radiusParam}${pageParam}`);
                         }
                         }}
                         className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream sm:w-44"
@@ -229,23 +284,102 @@ export default function SchoolsPage() {
 
 
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-
-                {/* loops over the array of schools returning the school and its index num */}
-                {schools.map((school) => (
-                <Link
-                    key={school.URN}
-                    /* href sends you to individual school page when clicked */
-                    href={`/schools/${school.URN}`}
-                    className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue hover:scale-[1.01] transition"
+            {!loading && !error && schools.length > 0 && (
+                <AnimatedGroup
+                    key={`${q}-${page}-${schools.length}`}
+                    className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+                    preset="scale"
                 >
-                    
+                    {/* loops over the array of schools returning the school and its index num */}
+                    {schools.map((school) => (
+                    <Link
+                        key={school.URN}
+                        /* href sends you to individual school page when clicked */
+                        href={`/schools/${school.URN}`}
+                        className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue hover:scale-[1.01] transition"
+                    >
                         {/* use URN as key due to it being unique to each school */}
                         <SchoolCard key={school.URN} school={school} score={scoresByUrn[school.URN] ?? null} />
-                    
-                </Link>
-                ))}
-            </div>
+                    </Link>
+                    ))}
+                </AnimatedGroup>
+            )}
+
+            {!loading && !error && (hasKnownTotal ? totalPages > 1 : (page > 1 || hasNextPage)) && (
+                <div className="mt-10 flex justify-center">
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => router.push(buildSearchUrl(Math.max(page - 1, 1)))}
+                                    disabled={page === 1}
+                                >
+                                    ←
+                                </Button>
+                            </PaginationItem>
+                            {hasKnownTotal ? (
+                                <>
+                                    {showLeftEllipsis && (
+                                        <>
+                                            <PaginationItem>
+                                                <PaginationLink onClick={() => router.push(buildSearchUrl(1))}>
+                                                    1
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <PaginationEllipsis />
+                                            </PaginationItem>
+                                        </>
+                                    )}
+
+                                    {pages.map((pageNumber) => (
+                                        <PaginationItem key={pageNumber}>
+                                            <PaginationLink
+                                                onClick={() => router.push(buildSearchUrl(pageNumber))}
+                                                isActive={pageNumber === page}
+                                            >
+                                                {pageNumber}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+
+                                    {showRightEllipsis && (
+                                        <>
+                                            <PaginationItem>
+                                                <PaginationEllipsis />
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <PaginationLink onClick={() => router.push(buildSearchUrl(totalPages))}>
+                                                    {totalPages}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <PaginationItem>
+                                    <PaginationLink isActive>
+                                        Page {page}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            )}
+
+                            <PaginationItem>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => router.push(buildSearchUrl(Math.min(page + 1, totalPages)))}
+                                    disabled={hasKnownTotal ? page === totalPages : !hasNextPage}
+                                >
+                                    →
+                                </Button>
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
+            )}
         </div>
     )
 }

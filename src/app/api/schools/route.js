@@ -2,7 +2,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
+  try {
+    const { searchParams } = new URL(request.url);
 
   const urn = searchParams.get("urn");
   const postcode = searchParams.get("postcode");
@@ -16,6 +17,7 @@ export async function GET(request) {
   const lngParam = searchParams.get("lng");
 
   const limitParam = searchParams.get("limit");
+  const pageParam = searchParams.get("page");
   const radiusParam = searchParams.get("radiusKm");
 
   const limit =
@@ -23,18 +25,22 @@ export async function GET(request) {
       ? Math.min(Number(limitParam), 200)
       : 50;
 
+  const page =
+    Number.isFinite(Number(pageParam)) && Number(pageParam) > 0
+      ? Math.floor(Number(pageParam))
+      : 1;
+
+  const offset = (page - 1) * limit;
+  const rangeFrom = offset;
+  const rangeTo = offset + limit - 1;
+
   const radiusKm =
     Number.isFinite(Number(radiusParam)) && Number(radiusParam) > 0
       ? Math.min(Number(radiusParam), 200)
       : 25;
 
-  const makeBaseQuery = () =>
-    supabaseServer
-      .from("School data")
-      .select(
-        'URN, Postcode, EstablishmentName, Locality, Address3, "County (name)", Town, latitude, longitude, "LA (name)", Street, SchoolWebsite, TelephoneNum, "Gender (name)", "PhaseOfEducation (name)", "EstablishmentStatus (name)",SchoolCapacity, NumberOfPupils, "SpecialClasses (name)", SchoolWebsite'
-      )
-      .limit(limit);
+  const selectColumns =
+    'URN, Postcode, EstablishmentName, Locality, Address3, "County (name)", Town, latitude, longitude, "LA (name)", Street, SchoolWebsite, TelephoneNum, "Gender (name)", "PhaseOfEducation (name)", "EstablishmentStatus (name)", SchoolCapacity, NumberOfPupils, "SpecialClasses (name)", SchoolWebsite, logo_url';
 
   const hasCoords =
     latParam != null &&
@@ -51,11 +57,15 @@ export async function GET(request) {
   };
 
   const fetchPostcodesIo = async (url) => {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
-    const body = await res.json();
-    if (!body || body.status !== 200 || !body.result) return null;
-    return body.result;
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) return null;
+      const body = await res.json().catch(() => null);
+      if (!body || body.status !== 200 || !body.result) return null;
+      return body.result;
+    } catch {
+      return null;
+    }
   };
 
   const resolveLocation = async (term) => {
@@ -98,19 +108,39 @@ export async function GET(request) {
   };
 
   const runNearbySearch = async (lat, lng) => {
-    const { data, error } = await supabaseServer.rpc("nearby_schools", {
+    const params = {
       lat: Number(lat),
       lon: Number(lng),
       limit_count: limit,
       max_km: radiusKm,
       phase_filter: phasePattern,
-    });
+      offset_count: offset,
+    };
+
+    let { data, error } = await supabaseServer.rpc("nearby_schools", params);
+
+    if (error) {
+      const message = error.message || "";
+      const missingFn = /schema cache|could not find the function/i.test(message);
+      if (missingFn) {
+        const legacy = await supabaseServer.rpc("nearby_schools", {
+          lat: Number(lat),
+          lon: Number(lng),
+          limit_count: limit,
+          max_km: radiusKm,
+          phase_filter: phasePattern,
+        });
+        data = legacy.data;
+        error = legacy.error;
+      }
+    }
 
     if (error) {
       return { error: error.message };
     }
 
-    return { data };
+    const totalCount = data?.[0]?.total_count ?? 0;
+    return { data, count: totalCount };
   };
 
   const getStatusRank = (row) => {
@@ -174,6 +204,9 @@ export async function GET(request) {
     return NextResponse.json({
       data: excludeHigherEd(nearby.data),
       mode: "nearby",
+      count: nearby.count ?? 0,
+      page,
+      limit,
     });
   }
 
@@ -192,45 +225,73 @@ export async function GET(request) {
           data: excludeHigherEd(dedupeByNameAndPostcode(nearby.data)),
           mode: "nearby",
           location: coords,
+          count: nearby.count ?? 0,
+          page,
+          limit,
         });
       }
     }
 
-    let query = makeBaseQuery().or(
-      `EstablishmentName.ilike.%${term}%,Town.ilike.%${term}%,Postcode.ilike.%${term}%`
-    );
-    if (phasePattern) {
-      query = query.ilike('"PhaseOfEducation (name)"', phasePattern);
+    const buildTextQuery = (withCount) => {
+      let query = supabaseServer
+        .from("School data")
+        .select(selectColumns, withCount ? { count: "estimated" } : undefined)
+        .or(
+          `EstablishmentName.ilike.%${term}%,Town.ilike.%${term}%,Postcode.ilike.%${term}%`
+        );
+      if (phasePattern) {
+        query = query.ilike('"PhaseOfEducation (name)"', phasePattern);
+      }
+      return query;
+    };
+
+    let data;
+    let count;
+    let hasNext = false;
+
+    {
+      const withCount = await buildTextQuery(true).range(rangeFrom, rangeTo);
+
+      if (withCount.error) {
+        const retry = await buildTextQuery(false).range(
+          rangeFrom,
+          rangeTo + 1
+        );
+        if (retry.error) {
+          return NextResponse.json(
+            { error: retry.error.message },
+            { status: 500 }
+          );
+        }
+        data = retry.data || [];
+        hasNext = data.length > limit;
+        if (hasNext) {
+          data = data.slice(0, limit);
+        }
+        count = null;
+      } else {
+        data = withCount.data;
+        count = withCount.count;
+      }
     }
 
-    const { data, error } = await query;
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    if (data && data.length > 0) {
+    if ((data && data.length > 0) || (count ?? 0) > 0) {
       return NextResponse.json({
         data: excludeHigherEd(dedupeByNameAndPostcode(data)),
         mode: "text",
+        count: count ?? null,
+        hasNext,
+        page,
+        limit,
       });
     }
 
-    const coords = await resolveLocation(term);
-    if (coords) {
-      const nearby = await runNearbySearch(coords.lat, coords.lng);
-      if (nearby.error) {
-        return NextResponse.json({ error: nearby.error }, { status: 500 });
-      }
-      return NextResponse.json({
-        data: excludeHigherEd(dedupeByNameAndPostcode(nearby.data)),
-        mode: "nearby",
-        location: coords,
-      });
-    }
-
-    return NextResponse.json({ data: [] });
+    // For city/place names, rely on text search only (avoid heavy nearby queries).
+    return NextResponse.json({ data: [], count: 0, page, limit, hasNext: false });
   } else {
-    let query = makeBaseQuery();
+    let query = supabaseServer.from("School data").select(selectColumns, {
+      count: "estimated",
+    });
 
     if (urn) {
       query = query.eq("URN", urn);
@@ -254,7 +315,7 @@ export async function GET(request) {
     if (phasePattern) {
       query = query.ilike('"PhaseOfEducation (name)"', phasePattern);
     }
-    const { data, error } = await query;
+    const { data, error, count } = await query.range(rangeFrom, rangeTo);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -262,6 +323,16 @@ export async function GET(request) {
 
     return NextResponse.json({
       data: excludeHigherEd(dedupeByNameAndPostcode(data)),
+      count: count ?? 0,
+      page,
+      limit,
     });
+  }
+  } catch (error) {
+    console.error("schools API error:", error);
+    return NextResponse.json(
+      { error: error?.message || "Unexpected server error." },
+      { status: 500 }
+    );
   }
 }

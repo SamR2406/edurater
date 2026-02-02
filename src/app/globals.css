@@ -152,6 +152,11 @@ pre {
   animation: iconScroll 300s linear infinite;
 }
 
+.icon-field {
+  transition: transform 200ms ease;
+  will-change: transform;
+}
+
 .icon-strip {
   display: flex;
   gap: 2rem;
