@@ -7,7 +7,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const { id: reviewId } = params; // no await
+  const { id: reviewId } = await params;
   if (!reviewId) {
     return NextResponse.json({ error: "Missing review id." }, { status: 400 });
   }
@@ -113,7 +113,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  const { id: reviewId } = params; // no await
+  const { id: reviewId } = await params;
   if (!reviewId) {
     return NextResponse.json({ error: "Missing review id." }, { status: 400 });
   }

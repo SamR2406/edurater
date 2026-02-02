@@ -18,13 +18,13 @@ import ReviewCard from "@/components/ReviewCard";   // UI component that display
 
 // defines reusable reported reviews component for admin dashboard page
 export default function ReportedReviewsRow() {
-const [accessToken, setAccessToken] = useState("");   // holds logged in user's access token for API requests
-const [rows, setRows] = useState([]);         // array of report rows fetched from the review-reports API
-const [loading, setLoading] = useState(true); // true while loading reports
-const [error, setError] = useState("");       // message to show if something fails
+    const [accessToken, setAccessToken] = useState("");   // holds logged in user's access token for API requests
+    const [rows, setRows] = useState([]);         // array of report rows fetched from the review-reports API
+    const [loading, setLoading] = useState(true); // true while loading reports
+    const [error, setError] = useState("");       // message to show if something fails
 
-// runs once on mount because dependency array is empty
-useEffect(() => {
+    // runs once on mount because dependency array is empty
+    useEffect(() => {
         /*
             asks Supabase auth what the current session is
             if yes, sets the access token for API requests
@@ -79,6 +79,33 @@ useEffect(() => {
         load();
     }, [accessToken]);
 
+    const handleDelete = async (reviewId) => {
+        if (!accessToken) {
+            setError("You must be signed in to delete a review.");
+            return;
+        }
+
+        console.log("delete clicked", {
+            reviewId
+        });
+
+        const confirmed = window.confirm("Delete this review?");
+        if (!confirmed) return;
+
+        const res = await fetch(`/api/reviews/${reviewId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setError(body.error || "Failed to delete review.");
+            return;
+        }
+    };
+
     return (
         <section className="mt-10">
             <div className="mb-3 flex items-end justify-between">
@@ -108,22 +135,32 @@ useEffect(() => {
                     {/* map each reported review row to a ReviewCard component inside a div */}
                     {rows.map((r) => (
                         <div key={r.id} className="min-w-[360px] shrink-0">
-                            <div className="mb-2 text-xs text-brand-cream">
+                            <div className="text-xs text-slate-600">
                                 <b>Reason:</b> {r.reason || "No reason provided"} <br />
                                 <b>Reported:</b> {new Date(r.created_at).toLocaleString()}
                             </div>
 
                             {/* show the actual review content using ReviewCard component */}
                             {r.review?.school_urn ? (
-                                <Link
-                                    href={`/schools/${r.review.school_urn}`}
-                                    className="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                                    aria-label="View school review profile"
-                                >
+                                <div>
+                                    <Link
+                                        href={`/schools/${r.review.school_urn}`}
+                                        className="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                        aria-label="View school review profile"
+                                    >
+                                        <div className="mb-2 text-xs text-slate-600">
+                                            Go to school page
+                                        </div>
+                                    </Link>
                                     <div className="transition-transform group-hover:-translate-y-0.5">
-                                        <ReviewCard review={r.review} />
+                                        <ReviewCard
+                                            key={r.id}
+                                            review={r.review}
+                                            showDelete={true}
+                                            onDelete={() => handleDelete(r.review_id)}
+                                        />
                                     </div>
-                                </Link>
+                                </div>
                             ) : (
                                 <ReviewCard review={r.review} />
                             )}
