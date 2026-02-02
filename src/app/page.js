@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import IconsScroll from "@/components/IconsScroll";
 import RecommendationCard from "@/components/Recommendation";
 import Link from "next/link";
+import { MagnetizeButton } from "@/components/ui/magnetize-button";
 
 export default function Home() {
   const [q, setQ] = useState("");
@@ -16,6 +17,7 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [error, setError] = useState("");
+  const [magnetOffset, setMagnetOffset] = useState({ x: 0, y: 0 });
   const router = useRouter();
 
   const onSearch = () => {
@@ -56,8 +58,16 @@ export default function Home() {
       
       setSuggestionLoading(true);
       const phaseParam = phase !== "all" ? `&phase=${encodeURIComponent(phase)}` : "";
-      const response = await fetch(`/api/schools?q=${encodeURIComponent(term)}${phaseParam}&limit=5`);
-      const body = await response.json();
+      let response;
+      let body = {};
+      try {
+        response = await fetch(`/api/schools?q=${encodeURIComponent(term)}${phaseParam}&limit=5`);
+        body = await response.json().catch(() => ({}));
+      } catch {
+        setError("An error occurred while fetching suggestions.");
+        setSuggestionLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         setError(body.error || "An error occurred while fetching suggestions.");
@@ -89,7 +99,13 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
       <header className="relative display-headings w-full min-h-[44vh] flex items-center justify-center bg-brand-blue">
-        <IconsScroll icons={icons} size={44} rows={7} speed={300}/>
+        <IconsScroll
+          icons={icons}
+          size={44}
+          rows={7}
+          speed={300}
+          magnetOffset={magnetOffset}
+        />
 
         <div className="relative z-10 px-6 text-center">
           <h1 className="font-extrabold text-brand-brown dark:text-white">
@@ -142,13 +158,28 @@ export default function Home() {
                 placeholder="Search for schools..."
                 className="w-full rounded-md border border-brand-brown px-4 py-2 text-brand-blue placeholder:text-brand-brown focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue bg-brand-cream dark:bg-brand-brown dark:border-brand-cream dark:placeholder-brand-cream"
               />
-              <button
-                type="button"
-                onClick={onSearch}    
-                className="self-center rounded-md px-6 py-3 bg-brand-brown dark:bg-brand-cream text-brand-cream dark:text-brand-brown font-bold hover:bg-brand-orange dark:hover:bg-brand-blue hover:text-white dark:hover:text-brand-cream focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              <MagnetizeButton
+                particleCount={14}
+                attractRadius={52}
+                onMagnet={({ x, y, active }) => {
+                  if (!active) {
+                    setMagnetOffset({ x: 0, y: 0 });
+                    return;
+                  }
+                  setMagnetOffset({
+                    x: x * 0.12,
+                    y: y * 0.12,
+                  });
+                }}
               >
-                Search
-              </button>
+                <button
+                  type="button"
+                  onClick={onSearch}
+                  className="self-center rounded-md px-6 py-3 bg-brand-brown dark:bg-brand-cream text-brand-cream dark:text-brand-brown font-bold hover:bg-brand-orange dark:hover:bg-brand-blue hover:text-white dark:hover:text-brand-cream focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Search
+                </button>
+              </MagnetizeButton>
             </div>
             
             {suggestionLoading && (

@@ -8,6 +8,7 @@ export default function IconsScroll({
   rows = 7,
   rowGap = 80,
   speed = 300,
+  magnetOffset = { x: 0, y: 0 },
 }) {
   if (!icons.length) return null;
 
@@ -26,39 +27,46 @@ export default function IconsScroll({
             style={{ top: `${rowIndex * rowGap}px` }}
           >
             <div
-              className="icon-track"
+              className="icon-field"
               style={{
-                animationDuration: `${speed + rowIndex * 1.5}s`,
-                animationDirection: reverse ? "reverse" : "normal",
-                animationDelay: `${-rowIndex * 2}s`, // desync rows a bit
+                transform: `translate3d(${magnetOffset.x}px, ${magnetOffset.y}px, 0)`,
               }}
             >
-              {/* Strip A */}
-              <div className="icon-strip">
-                {base.map((src, i) => (
-                  <Image
-                    key={`a-${rowIndex}-${src}-${i}`}
-                    src={src}
-                    alt=""
-                    width={size}
-                    height={size}
-                    className="select-none"
-                  />
-                ))}
-              </div>
+              <div
+                className="icon-track"
+                style={{
+                  animationDuration: `${speed + rowIndex * 1.5}s`,
+                  animationDirection: reverse ? "reverse" : "normal",
+                  animationDelay: `${-rowIndex * 2}s`, // desync rows a bit
+                }}
+              >
+                {/* Strip A */}
+                <div className="icon-strip">
+                  {base.map((src, i) => (
+                    <Image
+                      key={`a-${rowIndex}-${src}-${i}`}
+                      src={src}
+                      alt=""
+                      width={size}
+                      height={size}
+                      className="select-none"
+                    />
+                  ))}
+                </div>
 
-              {/* Strip B (identical) */}
-              <div className="icon-strip" aria-hidden="true">
-                {base.map((src, i) => (
-                  <Image
-                    key={`b-${rowIndex}-${src}-${i}`}
-                    src={src}
-                    alt=""
-                    width={size}
-                    height={size}
-                    className="select-none"
-                  />
-                ))}
+                {/* Strip B (identical) */}
+                <div className="icon-strip" aria-hidden="true">
+                  {base.map((src, i) => (
+                    <Image
+                      key={`b-${rowIndex}-${src}-${i}`}
+                      src={src}
+                      alt=""
+                      width={size}
+                      height={size}
+                      className="select-none"
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
