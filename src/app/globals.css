@@ -2,6 +2,9 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root { --nav-h: 5rem; }  /* 5rem == Tailwind pt-20 */
+
+
 :root.dark {
   --background: #0A0A0A;
   --foreground: #EDEDED;

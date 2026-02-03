@@ -340,10 +340,10 @@ export default function StaffRequestPage() {
         ) : null}
 
         {!authLoading && session ? (
-          <div className="rounded-3xl border border-brand-brown p-6">
+          <div className="rounded-3xl border border-brand-brown dark:border-brand-cream p-6">
             <h2 className="text-lg font-semibold">Your requests</h2>
             {requests.length === 0 ? (
-              <p className="mt-2 text-sm text-brand-brown">
+              <p className="mt-2 text-sm text-brand-brown dark:text-brand-cream">
                 No staff requests yet.
               </p>
             ) : (
