@@ -97,8 +97,8 @@ export default function Home() {
   }, [q, phase, radiusKm]);
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <header className="relative display-headings w-full min-h-[44vh] flex items-center justify-center bg-brand-blue">
+  <main className="h-[calc(100vh-var(--nav-h))] flex flex-col overflow-hidden">
+      <header className="relative display-headings w-full min-h-[48vh] flex items-center justify-center bg-brand-blue overflow-hidden">
         <IconsScroll
           icons={icons}
           size={44}
@@ -116,8 +116,8 @@ export default function Home() {
       </header>
 
       {/* SEARCH AREA */}
-      <section className="flex-1 w-full bg-brand-cream dark:bg-brand-brown flex items-start justify-center px-6 py-12">
-        <div className="w-full max-w-lg">
+      <section className="flex-1 min-h-0 w-full bg-brand-cream dark:bg-brand-brown flex items-start justify-center px-6 overflow-y-auto">
+        <div className="w-full max-w-lg py-12 min-h-0">
           <form
             className="w-full flex flex-col gap-3"
             onSubmit={(e) => {

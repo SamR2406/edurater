@@ -41,7 +41,12 @@ export default function RootLayout({ children }) {
           disableTransitionOnChange
         >
         <NavBar />
-        <div className="pt-20">{children}</div>
+<div
+  className="bg-brand-cream dark:bg-brand-brown"
+  style={{ paddingTop: "var(--nav-h)" }}
+>
+  {children}
+</div>
         </ThemeProvider>
       </body>
     </html>
