@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${dmSerifDisplay.variable}`}
       >
-      <body className="antialiased">
+      <body className="anti overflow-hidden">
          <ThemeProvider
           attribute="class"
           defaultTheme="system"
