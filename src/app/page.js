@@ -97,8 +97,8 @@ export default function Home() {
   }, [q, phase, radiusKm]);
 
   return (
-  <main className="h-[calc(100vh-var(--nav-h))] flex flex-col overflow-hidden">
-      <header className="relative display-headings w-full min-h-[48vh] flex items-center justify-center bg-brand-blue overflow-hidden">
+    <main className="h-[calc(100vh-5rem)] flex flex-col overflow-hidden overflow-x-hidden">
+      <header className="display-headings relative w-full h-[48svh] flex items-center justify-center  bg-brand-blue overflow-hidden">
         <IconsScroll
           icons={icons}
           size={44}
