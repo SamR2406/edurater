@@ -1,9 +1,11 @@
 "use client";   // makes the component run in the browser
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function ReviewModal({ open, review, onClose }) {
     const [step, setStep] = useState(0);
+    const [direction, setDirection] = useState(1);
 
     const sections = Array.isArray(review?.sections) ? review.sections : [];
     const totalSteps = 1 + sections.length; // 0 = main, 1.. = sections
@@ -12,8 +14,22 @@ export default function ReviewModal({ open, review, onClose }) {
     const activeSection = step > 0 ? sections[step - 1] : null;
     const hasActiveSection = Boolean(activeSection?.section_key);
 
-    const goPrev = () => setStep((s) => Math.max(0, s - 1));
-    const goNext = () => setStep((s) => Math.min(totalSteps - 1, s + 1));
+    const slideVariants = {
+        enter: (dir) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 1 }),
+        center: { x: "0%", opacity: 1 },
+        exit: (dir) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 1 }),
+    };
+
+
+    const goPrev = () => {
+        setDirection(-1);
+        setStep((s) => Math.max(0, s - 1));
+    };
+    
+    const goNext = () => {
+        setDirection(1);
+        setStep((s) => Math.min(totalSteps - 1, s + 1));
+    };
 
     useEffect(() => {
         if (open) setStep(0); // reset to first step when opening a new review
@@ -78,62 +94,73 @@ return (
           </button>
         </div>
 
-        {/* CONTENT AREA */}
-        {isMain ? (
-          <div className="mt-4 flex-1 min-h-0">
-            {/* overall rating (use the correct field name you store) */}
-            <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-                <div className="flex items-center justify-between gap-4">
-                    <p className="font-semibold text-slate-900 dark:text-white">
-                    Main Review
-                    </p>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    Overall:{" "}
-                    {review.rating_computed != null ? `${Number(review.rating_computed).toFixed(1)} / 5` : "—"}
-                    </p>
-                </div>
+        {/* MAIN SECTION */}
+        <div className="mt-4 flex-1 min-h-0">
+  <div className="relative h-full overflow-hidden">
+    <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+      <motion.div
+        key={step}
+        custom={direction}
+        variants={slideVariants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ type: "tween", duration: 0.38, ease: "easeInOut" }}
+        className="absolute inset-0"
+      >
+        {/* the grey scroll box stays fixed size */}
+        <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+          {step === 0 ? (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-semibold text-slate-900 dark:text-white">Main Review</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Overall:{" "}
+                  {review.rating_computed != null
+                    ? `${Number(review.rating_computed).toFixed(1)} / 5`
+                    : "—"}
+                </p>
+              </div>
 
-                {review.body ? (
+              {review.body ? (
                 <p className="mt-3 whitespace-pre-wrap text-slate-800 dark:text-slate-100">
-                    {review.body}
+                  {review.body}
                 </p>
-                ) : (
+              ) : (
                 <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">No main comment.</p>
-                )}
-
-                {sections.length > 0 ? (
-                    <></>
-                ) : (
-                <p className="mt-6 text-sm text-slate-500 dark:text-slate-300">
-                    No category breakdown available for this review.
+              )}
+            </>
+          ) : hasActiveSection ? (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-semibold text-slate-900 dark:text-white">
+                  {prettySectionName(activeSection.section_key)}
                 </p>
-                )}
-            </div>
-          </div>
-        ) : (
-            hasActiveSection ? (
-            <div className="mt-4 flex-1 min-h-0">
-                <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-                <div className="flex items-center justify-between gap-4">
-                    <p className="font-semibold text-slate-900 dark:text-white">
-                    {prettySectionName(activeSection.section_key)}
-                    </p>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {activeSection.rating ?? "—"} / 5
-                    </p>
-                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {activeSection.rating ?? "—"} / 5
+                </p>
+              </div>
 
-                {activeSection.comment ? (
-                    <p className="mt-3 whitespace-pre-wrap text-slate-800 dark:text-slate-100">
-                    {activeSection.comment}
-                    </p>
-                ) : (
-                    <p className="mt-2 text-sm text-slate-400">No comment</p>
-                )}
-                </div>
-            </div>
-            ) : null
-        )}
+              {activeSection.comment ? (
+                <p className="mt-3 whitespace-pre-wrap text-slate-800 dark:text-slate-100">
+                  {activeSection.comment}
+                </p>
+              ) : (
+                <p className="mt-2 text-sm text-slate-400">No comment</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-slate-500 dark:text-slate-300">
+              No category breakdown available for this review.
+            </p>
+          )}
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  </div>
+</div>
+
+
 
         {/* NAV FOOTER */}
         {totalSteps > 1 ? (
