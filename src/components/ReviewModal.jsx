@@ -9,7 +9,8 @@ export default function ReviewModal({ open, review, onClose }) {
     const totalSteps = 1 + sections.length; // 0 = main, 1.. = sections
 
     const isMain = step === 0;
-    const activeSection = !isMain ? sections[step - 1] : null;
+    const activeSection = step > 0 ? sections[step - 1] : null;
+    const hasActiveSection = Boolean(activeSection?.section_key);
 
     const goPrev = () => setStep((s) => Math.max(0, s - 1));
     const goNext = () => setStep((s) => Math.min(totalSteps - 1, s + 1));
@@ -17,6 +18,11 @@ export default function ReviewModal({ open, review, onClose }) {
     useEffect(() => {
         if (open) setStep(0); // reset to first step when opening a new review
     }, [open, review?.id]);
+
+    useEffect(() => {
+        if (!open) return;
+        setStep((s) => Math.min(s, totalSteps - 1));
+    }, [open, totalSteps]);
 
     useEffect(() => {
         if (!open) return;
@@ -105,26 +111,28 @@ return (
             </div>
           </div>
         ) : (
-          <div className="mt-4 flex-1 min-h-0">
-            <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-              <div className="flex items-center justify-between gap-4">
-                <p className="font-semibold text-slate-900 dark:text-white">
-                  {prettySectionName(activeSection.section_key)}
-                </p>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  {activeSection.rating ?? "—"} / 5
-                </p>
-              </div>
+            hasActiveSection ? (
+            <div className="mt-4 flex-1 min-h-0">
+                <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+                <div className="flex items-center justify-between gap-4">
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                    {prettySectionName(activeSection.section_key)}
+                    </p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {activeSection.rating ?? "—"} / 5
+                    </p>
+                </div>
 
-              {activeSection.comment ? (
-                <p className="mt-3 whitespace-pre-wrap text-slate-800 dark:text-slate-100">
-                  {activeSection.comment}
-                </p>
-              ) : (
-                <p className="mt-2 text-sm text-slate-400">No comment</p>
-              )}
+                {activeSection.comment ? (
+                    <p className="mt-3 whitespace-pre-wrap text-slate-800 dark:text-slate-100">
+                    {activeSection.comment}
+                    </p>
+                ) : (
+                    <p className="mt-2 text-sm text-slate-400">No comment</p>
+                )}
+                </div>
             </div>
-          </div>
+            ) : null
         )}
 
         {/* NAV FOOTER */}
