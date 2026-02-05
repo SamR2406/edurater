@@ -309,3 +309,20 @@ pre {
   background-color: #FBF5E7 !important; /* brand-cream */
   color: #3D2901 !important;            /* brand-brown */
 }
+
+/* default (light) */
+[data-variant] { --review-band: #3D2901; } 
+
+.dark [data-variant] { --review-band: #1573FF; }
+
+
+/* contexts (light)
+[data-variant="home"]    { --review-band: #2563eb; }
+[data-variant="search"]  { --review-band: #10b981; }
+[data-variant="profile"] { --review-band: #a855f7; }
+
+/* contexts (dark) */
+/* .dark [data-variant="home"]    { --review-band: #60a5fa; }
+.dark [data-variant="search"]  { --review-band: #34d399; }
+.dark [data-variant="profile"] { --review-band: #c084fc; } */ 
+

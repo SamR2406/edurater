@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
 export default function Home() {
   const [q, setQ] = useState("");
   const [phase, setPhase] = useState("all");
@@ -234,6 +233,8 @@ export default function Home() {
           </form>
         </div>
       </section>
+
+
     </main>
   );
 }
