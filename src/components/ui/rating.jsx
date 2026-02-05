@@ -175,7 +175,7 @@ export default function Rating({
       })}
 
       {showValue ? (
-        <span className="ml-2 text-sm font-semibold text-brand-brown dark:text-brand-cream">
+        <span className="ml-2 text-sm font-semibold text-brand-brown">
           {formattedValue}
         </span>
       ) : null}

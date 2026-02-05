@@ -20,7 +20,7 @@ export default function SchoolPage({ school }) {
     return (
         <div className="display-headings bg-brand-cream dark:bg-brand-brown">
             {/* school name large heading */}
-            <h3 className="text-2xl font-semibold text-brand-orange dark:text-brand-orange mb-4">
+            <h3 className="font-semibold text-brand-orange dark:text-brand-orange mb-4">
                 {school.EstablishmentName}
             </h3>
 
