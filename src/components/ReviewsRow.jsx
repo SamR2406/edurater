@@ -119,19 +119,19 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
     return (
         <section className="mt-8">
             <div className="display-headings mb-3 flex items-end justify-between">
-                <h2 className="text-lg font-semibold text-brand-orange dark:text-brand-orange">
-                    Reviews
-                </h2>
-                {!loading && !error && (
-                    <p className="text-sm text-brand-brown dark:text-brand-cream">
+                <h3 className="mt-8 font-semibold text-brand-orange dark:text-brand-orange">
+                    Reviews:
+                </h3>
+                {/* {!loading && !error && (
+                    <h5 className="text-brand-brown dark:text-brand-cream">
                         {reviewCount} total
-                    </p>
-                )}
+                    </h5>
+                )} */}
             </div>
             {!loading && !error && schoolScore !== null && (
-                <p className="mb-3 text-sm text-brand-brown dark:text-brand-cream">
+                <h4 className="mb-3 text-brand-brown dark:text-brand-cream">
                     School score: {schoolScore.toFixed(1)} / 5
-                </p>
+                </h4>
             )}
 
             {loading && <p className="text-sm text-brand-cream dark:text-brand-cream">Loading reviews...</p>}
