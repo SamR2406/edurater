@@ -74,7 +74,7 @@ return (
       />
 
       {/* modal panel */}
-      <div className="relative z-10 w-[min(720px,92vw)] h-[40vh] min-h-[300px] rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900 flex flex-col">
+      <div className="relative z-10 w-[min(720px,92vw)] h-[40vh] min-h-[300px] rounded-2xl bg-brand-cream dark:bg-blue-900 p-6 shadow-xl flex flex-col">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
@@ -109,7 +109,7 @@ return (
         className="absolute inset-0"
       >
         {/* the grey scroll box stays fixed size */}
-        <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+        <div className="h-full overflow-y-auto rounded-xl border border-slate-200 p-4 dark:border-slate-400">
           {step === 0 ? (
             <>
               <div className="flex items-center justify-between gap-4">
