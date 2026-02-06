@@ -65,11 +65,13 @@ export default function Rating({
       : "h-8 w-8";
 
   const prevFillValue = useRef(fillValue);
-  const direction = fillValue >= prevFillValue.current ? "up" : "down";
+  const [direction, setDirection] = useState("up");
 
   useEffect(() => {
-    prevFillValue.current = fillValue;
+  setDirection(fillValue >= prevFillValue.current ? "up" : "down");
+  prevFillValue.current = fillValue;
   }, [fillValue]);
+
 
   const solidColor = colorForRating(fillValue);
 
@@ -168,29 +170,19 @@ disabled && !isInteractive && "cursor-default",
                     }}
                   />
                 </clipPath>
-
               </defs>
 
-              {/* Base star */}
-{/* Base star (always cream in the form) */}
-{/* Star outline */}
-<path
-  d={STAR_PATH}
-  fill="none"
-  stroke="#3D2901"
-  strokeWidth="0.7"
-  strokeLinejoin="round"
-/>
-
-
-
-
+              {/* Base star -outline */}
+              <path
+                d={STAR_PATH}
+                fill="none"
+                stroke="#3D2901"
+                strokeWidth="0.7"
+                strokeLinejoin="round"
+              />
 
               <g clipPath={`url(#${clipId})`}>
-  <path d={STAR_PATH} style={{ fill: fillColor, fillOpacity: 1, opacity: 1 }} />
-
-
-
+                <path d={STAR_PATH} style={{ fill: fillColor, fillOpacity: 1, opacity: 1 }} />
               </g>
             </svg>
           </button>
