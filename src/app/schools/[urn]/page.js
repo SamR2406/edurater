@@ -98,7 +98,7 @@ export default function SchoolDetailPage() {
             {user ? (
              
                 <div>
-                    <button onClick={() => setReviewing(!reviewing)} className="rounded-md bg-blue-600 mt-6 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+                    <button onClick={() => setReviewing(!reviewing)} className="rounded-md bg-brand-brown mt-6 px-4 py-2 font-semibold text-brand-cream hover:bg-brand-orange disabled:opacity-60">
                         {reviewing ? "Cancel Review" : "Leave a Review"}
                     </button>
 

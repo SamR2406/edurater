@@ -40,9 +40,7 @@ export default function ProfilePage() {
     <main className="display-headings min-h-screen bg-brand-blue text-brand-cream">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-16">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
-            Profile
-          </p>
+          
           <h2 className="font-semibold">Your account</h2>
           <h4 className="text-brand-cream">
             Manage your account and access staff tools.
