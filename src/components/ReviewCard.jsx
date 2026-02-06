@@ -31,6 +31,7 @@ export default function ReviewCard({
             showValue
             roundToHalf
             valueDisplay="exact"
+            colorMode="solidByRating"
           />
         </div>
             

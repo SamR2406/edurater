@@ -19,6 +19,11 @@ const STAR_COLORS = [
   "#22c55e", // green
 ];
 
+function colorForRating(rating) {
+  // rating is 0..5 (can be half)
+  const idx = clamp(Math.ceil(rating) - 1, 0, 4);
+  return STAR_COLORS[idx];
+}
 
 export default function Rating({
   value,
@@ -30,6 +35,7 @@ export default function Rating({
   roundToHalf = false,
   valueDisplay = "rounded",
   allowHalfSelect = false,
+  colorMode = "perStar",
 }) {
   const uid = useId();
   const [hoverValue, setHoverValue] = useState(null);
@@ -45,6 +51,7 @@ export default function Rating({
       ? Math.round(current * 2) / 2
       : Math.round(current * 10) / 10
     : 0;
+
   const textValue = valueDisplay === "exact" ? exactValue : roundedValue;
   const formattedValue = String(textValue).replace(/\.0$/, "");
   const isInteractive = !disabled && typeof onChange === "function";
@@ -64,6 +71,7 @@ export default function Rating({
     prevFillValue.current = fillValue;
   }, [fillValue]);
 
+  const solidColor = colorForRating(fillValue);
 
   return (
     <div
@@ -77,7 +85,7 @@ export default function Rating({
       {Array.from({ length: 5 }, (_, i) => {
         const starValue = i + 1;
 
-        const fillColor = STAR_COLORS[i];
+        const fillColor = colorMode === "solidByRating" ? solidColor : STAR_COLORS[i];
 
         // Fill fraction for this star (0..1)
         // e.g. rating=3.2 => star 4 gets 0.2
@@ -129,8 +137,10 @@ export default function Rating({
             className={cn(
               "inline-flex flex-shrink-0 items-center justify-center",
               isInteractive &&
-    "cursor-pointer transition-transform duration-150 ease-out hover:scale-110 active:scale-95",
-  disabled && "cursor-not-allowed opacity-60",
+              "cursor-pointer transition-transform duration-150 ease-out hover:scale-110 active:scale-95",
+              disabled && isInteractive && "cursor-not-allowed opacity-60",
+disabled && !isInteractive && "cursor-default",
+
               sizeClass
             )}
             aria-label={`Rate ${starValue} out of 5`}
@@ -161,12 +171,25 @@ export default function Rating({
 
               </defs>
 
-              {/* Base star (empty/gray) */}
-              <path d={STAR_PATH} style={{ fill: "#fbf5e7" }} />
+              {/* Base star */}
+{/* Base star (always cream in the form) */}
+{/* Star outline */}
+<path
+  d={STAR_PATH}
+  fill="none"
+  stroke="#3D2901"
+  strokeWidth="0.7"
+  strokeLinejoin="round"
+/>
 
-              {/* Filled portion clipped */}
+
+
+
+
               <g clipPath={`url(#${clipId})`}>
-                <path d={STAR_PATH} style={{ fill: fillColor }} />
+  <path d={STAR_PATH} style={{ fill: fillColor, fillOpacity: 1, opacity: 1 }} />
+
+
 
               </g>
             </svg>

@@ -134,7 +134,7 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
                 </p>
             )}
 
-            {loading && <p className="text-sm text-gray-600 dark:text-gray-300">Loading reviews...</p>}
+            {loading && <p className="text-sm text-brand-cream dark:text-brand-cream">Loading reviews...</p>}
 
             {editingReview ? (
                 <ReviewForm
@@ -149,8 +149,8 @@ export default function ReviewsRow({ schoolUrn, refreshKey = 0 }) {
                 />
             ) : null}
 
-            {loading && <p className="text-sm text-gray-600 dark:text-gray-300">Loading reviews...</p>}
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {loading && <p className="text-sm text-brand-cream dark:text-brand-cream">Loading reviews...</p>}
+            {error && <p className="text-sm text-brand-orange">{error}</p>}
 
             {!loading && !error && reviews.length === 0 && (
                 <p className="text-sm text-brand-blue dark:text-brand-cream">
