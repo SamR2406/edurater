@@ -65,7 +65,9 @@ export default function LoginPage() {
       return;
     }
 
-    setMessage("Check your email to verify your account.");
+    setMessage(
+      "If the email can be registered, we sent a verification link. If you already have an account, sign in or reset your password."
+    );
   };
 
   const handleGoogleSignIn = async () => {
@@ -227,7 +229,7 @@ export default function LoginPage() {
               }}
               className="font-semibold hover:text-brand-brown"
             >
-              Do you have an account? Sign up!
+              Don&apos;t have an account? Sign up
             </button>
           ) : (
             <button
