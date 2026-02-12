@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="display-headings min-h-screen bg-brand-blue dark:bg-brand-brown ">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-45">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-30">
         <div>
           <h1 className=" font-extrabold text-brand-cream  dark:text-brand-orange">Reset password</h1>
           <h4 className="mt-10 text-brand-white">
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
 
         <a
           href="/login"
-          className="font-semibold text-brand-blue hover:text-brand-orange"
+          className="font-semibold text-brand-cream hover:text-brand-orange"
         >
           Back to sign in
         </a>
