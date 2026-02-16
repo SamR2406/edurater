@@ -1,11 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuthProfile } from "@/lib/auth/useAuthProfile";
 
 export default function RoleGate({
+  allowedRoles = [],
+  children,
+  fallback = null,
+}) {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-600">Checking access...</p>}>
+      <RoleGateContent
+        allowedRoles={allowedRoles}
+        fallback={fallback}
+      >
+        {children}
+      </RoleGateContent>
+    </Suspense>
+  );
+}
+
+function RoleGateContent({
   allowedRoles = [],
   children,
   fallback = null,
